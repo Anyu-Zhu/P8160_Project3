@@ -3,3 +3,27 @@ title: "mcmc"
 output: html_document
 ---
 
+```{r setup, message = FALSE}
+library(tidyverse)
+library(lubridate)
+```
+
+```{r}
+# --- Import data ---
+hurrican <- read_csv("./hurrican703.csv") %>% 
+  janitor::clean_names() %>% 
+  separate(time, into = c("date", "hour"), sep = " ") %>% 
+  filter(hour == "00:00:00)" | hour == "06:00:00)" | hour == "12:00:00)" | hour == "18:00:00)") %>% 
+  group_by(id) %>% 
+  mutate(latitude_d = lead(latitude) - latitude,
+         longitude_d = lead(longitude) - longitude,
+         wind_kt_d = lead(wind_kt) - wind_kt,
+         wind_kt_2 = lead(wind_kt)) %>% 
+  na.omit()
+```
+
+
+```{r}
+
+```
+
