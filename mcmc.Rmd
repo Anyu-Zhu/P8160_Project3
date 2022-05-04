@@ -8,6 +8,7 @@ library(tidyverse)
 library(lubridate)
 library(extraDistr)
 library(rWishart)
+library(MASS)
 ```
 
 ```{r}
@@ -31,26 +32,27 @@ hurrican <- read_csv("./hurrican703.csv") %>%
   relocate(13,14,9,10,11,12) 
 
 Xlist = hurrican %>% 
-  select(2:6, id) %>% 
+  dplyr::select(2:6, id) %>% 
   nest() %>% 
   pull(data)
 
 Ylist = hurrican %>% 
-  select(1, id) %>% 
+  dplyr::select(1, id) %>% 
   nest() %>% 
   pull(data)
 ```
 
 ```{r}
 # B for beta matrix
-betai = function(x, y, beta, sigma_sq, sigma_inv){
-  res = vector("list", length = length(x))
+B = function(x_dat, y_dat, mu_est, sigma_sq, sigma_inv){
+  res = vector("list", length = length(x_dat))
+  n = length(x_dat)
   # Beta_i function ~ N(V^-1*M, V^-1)
-  for (i in 1:length(x)){
-    x = as.matrix(x[[i]])
-    y = as.vector(y[[i]])
+  for (i in 1:n){
+    x = as.matrix(x_dat[[i]])
+    y = as.vector(y_dat[[i]])
     k = sigma_inv + sigma_sq^(-1) * t(x) %*% x
-    m = sigma_sq^(-1) * (t(y) %*% x)  + t(beta) %*% sigma_inv
+    m = sigma_sq^(-1) * (t(y) %*% x)  + t(mu_est) %*% sigma_inv
     varcov = solve(k)
     mu = varcov %*% t(m)
     bi = mvrnorm(1, mu = mu, Sigma = varcov)
@@ -59,25 +61,29 @@ betai = function(x, y, beta, sigma_sq, sigma_inv){
   # Final res is the 700 x 5 matrix 
   return(res)
 }
+
+B(Xlist[1:10], Ylist[1:10], mu_est = ini.mu, sigma_sq = ini.sig, sigma_inv = ini.bsig)
 ```
 
 ```{r}
 ## sigma_sq
-n = length(unique(hurrican$id))
-sum_ki = 0
-res = NULL
-for (i in 1:n){
-  hurr_i <- hurrican %>% filter(id == ids[i])
-  rowcount <- nrow(hurr_i)
-  sum_ki = sum_ki + rowcount
+sigma_sq <- function(B){
   
-  y = hurr_i[,2]
-  x = cbind(rep(1, nrow(hurr_i)), hurr_i[, 3:6])
-  x = as.matrix(x)
-  ssr = sum((y - x %*% t(B[i]))^2)
-  res = rbind(res, ssr)
-}
-sigma_sq <- function(sum_ki, res){
+  n = length(unique(hurrican$id))
+  sum_ki = 0
+  res = NULL
+  ids = unique(hurrican$id)
+  for (i in 1:n){
+    hurr_i <- hurrican %>% filter(id == ids[i])
+    rowcount <- nrow(hurr_i)
+    sum_ki = sum_ki + rowcount
+  
+    y = hurr_i[,1]
+    x = cbind(rep(1, nrow(hurr_i)), hurr_i[, 2:6]) %>% as.matrix()
+    ssr = sum((y - x %*% t(B[i]))^2)
+    res = rbind(res, ssr)
+  }
+  
   alpha = sum_ki/2 + 2
   beta = res/2
   sigma = rinvgamma(1, alpha, beta)
@@ -88,7 +94,7 @@ sigma_sq <- function(sum_ki, res){
 
 ```{r}
 #big sigma inverse
-sigma_inv = function(B, mu){
+sigma_inv = function(B, mu_est){
   n = nrow(B) # n is number of hurricane
   d = ncol(B)
   
@@ -96,7 +102,7 @@ sigma_inv = function(B, mu){
   
   for (i in 1:n) {
     betai = B[i,]
-    scalematx = scalematx + t(betai - mu) %*% (betai - mu)
+    scalematx = scalematx + t(betai - mu_est) %*% (betai - mu_est)
   }
   
   omega = scalematx + diag(1,d,d) #omega is the scale matrix
@@ -109,10 +115,46 @@ sigma_inv = function(B, mu){
 
 ```{r}
 ## Mu
-mu_est = function(betai, SigmaB){
-  col_mu = colMeans(betai)
-  n = nrow(betai)
-  mu = mvrnorm(1, col_mu, SigmaB / n) 
+mu_est = function(B, sigma_inv){
+  col_mu = colMeans(B)
+  n = nrow(B)
+  mu = mvrnorm(1, col_mu, sigma_inv / n) 
   return(mu)
 }
 ```
+
+## MCMC
+```{r}
+mcmc = function(x_dat, y_dat, ini.mu, ini.bsig, ini.sig, niter){
+  beta.i = vector("list", length = niter) # in each iteration, betai - 365x8
+  b.sig = vector("list", length = niter)
+  sigma = rep(NA, niter)
+  mu = vector("list", length = niter)
+  
+  # Initial values:
+  beta.i[[1]] <- B(x_dat, y_dat, mu_est = ini.mu, sigma_sq = ini.sig, sigma_inv = ini.bsig)
+  sigma[1] <- ini.sig
+  mu[[1]] <- ini.mu
+  b.sig[[1]] <- ini.bsig
+
+  # Do gibbs sampler
+  for (i in 2:niter){
+    beta.i[[i]] = B(x_dat, y_dat, mu_est = mu[[i-1]], sigma_sq = sigma[i-1], sigma_inv = b.sig[[i-1]])
+    sigma[i] = sigma_sq(B = beta.i[[i]])
+    b.sig[[i]] = sigma_inv(B = beta.i[[i]], mu_est = mu[[i-1]])
+    mu[[i]] = mu_est(B = beta.i[[i]], sigma_inv = b.sig[[i]])
+
+    }
+  return(list(B = beta.i, sigma_sq = sigma, sigma_inv = b.sig, mu_est = mu))
+}
+```
+
+### Test
+```{r}
+ini.mu = c(50,rep(0,4))
+ini.sig = .5
+ini.bsig = diag(.5,5,5)
+
+mcmc(x = Xlist[1:10], y = Ylist[1:10], ini.mu, ini.sig, ini.bsig, niter = 100)
+```
+
