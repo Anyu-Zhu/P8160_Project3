@@ -26,7 +26,11 @@ hurrican <- read_csv("./hurrican703.csv") %>%
          longitude_d = lead(longitude) - longitude,
          wind_kt_d = lead(wind_kt) - wind_kt,
          wind_kt_2 = lead(wind_kt)) %>% 
-  na.omit() 
+  na.omit() %>% 
+  mutate(intercept = 1) %>% 
+  relocate(13,14,9,10,11,12)
+
+
 ```
 
 
