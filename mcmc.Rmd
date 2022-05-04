@@ -26,7 +26,7 @@ hurrican <- read_csv("./hurrican703.csv") %>%
          longitude_d = lead(longitude) - longitude,
          wind_kt_d = lead(wind_kt) - wind_kt,
          wind_kt_2 = lead(wind_kt)) %>% 
-  na.omit()  
+  na.omit() 
 ```
 
 
@@ -34,11 +34,15 @@ hurrican <- read_csv("./hurrican703.csv") %>%
 
 ids = unique(hurrican$id)
 n = length(unique(hurrican$id))
+sum_ki = 0
 
 # B for beta matrix
 ssr = 0
 for (i in 1:n){
   hurr_i <- hurrican %>% filter(id == ids[i])
+  rowcount <- nrow(hurr_i)
+  sum_ki = sum_ki + rowcount
+  
   y = hurr_i[,2]
   x = cbind(rep(1, nrow(hurr_i)), hurr_i[, 3:6])
   x = as.matrix(x)
@@ -68,6 +72,6 @@ sigma_inv = function(B, mu){
   sigmaws = rinvwishart(1, nu = d+1, Omega = omega, checkSymmetry = F) 
   sigmaws = matrix(sigmaws, nrow = 5, ncol = 5)
   return(sigmaws)
-  }
+}
 ```
 
