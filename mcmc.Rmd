@@ -74,7 +74,7 @@ sigma_inv = function(B, mu){
 mu_est = function(betai, SigmaB){
   col_mu = colMeans(betai)
   n = nrow(betai)
-  mu = mvrnorm(1, col_mu, solve(SigmaB)/n) 
+  mu = mvrnorm(1, col_mu, SigmaB / n) 
   return(mu)
 }
 ```
