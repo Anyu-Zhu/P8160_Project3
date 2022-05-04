@@ -59,19 +59,27 @@ sigma <- function(){
 
 #big sigma inverse
 sigma_inv = function(B, mu){
-  d = nrow(B) # d is number of hurricane
+  n = nrow(B) # n is number of hurricane
+  d = ncol(B)
   
-  scalematx = diag(0,5,5)
+  scalematx = diag(0,d,d)
   
-  for (i in 1:d) {
+  for (i in 1:n) {
     betai = B[i,]
-    scalematx = scalematx + (betai - mu) %*% t(betai - mu)
+    scalematx = scalematx + t(betai - mu) %*% (betai - mu)
   }
   
-  omega = scalematx + diag(1,5,5) #omega is the scale matrix
-  sigmaws = rinvwishart(1, nu = d+1, Omega = omega, checkSymmetry = F) 
-  sigmaws = matrix(sigmaws, nrow = 5, ncol = 5)
+  omega = scalematx + diag(1,d,d) #omega is the scale matrix
+  sigmaws = rinvwishart(1, nu = n + d + 1, Omega = omega, checkSymmetry = F) 
+  sigmaws = matrix(sigmaws, nrow = d, ncol = d)
   return(sigmaws)
+}
+
+mu_est = function(betai, SigmaB){
+  col_mu = colMeans(betai)
+  n = nrow(betai)
+  mu = mvrnorm(1, col_mu, SigmaB / n) 
+  return(mu)
 }
 ```
 
