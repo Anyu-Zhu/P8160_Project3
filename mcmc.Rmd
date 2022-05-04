@@ -10,6 +10,7 @@ library(extraDistr)
 library(rWishart)
 library(MASS)
 library(matrixsampling)
+library(caret)
 ```
 
 ```{r}
@@ -95,6 +96,7 @@ sigma_sq <- function(B){
   return(sigma)
 }
 
+sigma_sq(test_B)
 ```
 
 
@@ -163,7 +165,32 @@ ini.mu = c(50,rep(0,4))
 ini.sig = .5
 ini.bsig = diag(.5,5,5)
 
-rest_test = mcmc(x = Xlist[1:10], y = Ylist[1:10], ini.mu, ini.bsig, ini.sig, niter = 100)
-rest_test$B[100]
+rest_test = mcmc(x = Xlist[1:100], y = Ylist[1:100], ini.mu, ini.bsig, ini.sig, niter = 1000)
+
+rest_test$B[1000]
+```
+
+## Test prediction
+```{r}
+ids = unique(hurrican$id)
+  for (i in 1:length(ids)){
+    hurr_i <- hurrican %>% filter(id == ids[i])
+    trRow <- createDataPartition(hurr_i, p = 0.8)
+    ## Train
+    hurr_train = hurr_i[trRow,]
+    ## Test
+    hurr_test = hurr_i[-trRow,]
+    ## List for beta
+    Xlist_train = hurr_train %>% 
+            dplyr::select(2:6, id) %>% 
+            nest() %>% 
+            pull(data)
+    Ylist_train = hurr_train %>% 
+      dplyr::select(1, id) %>% 
+      nest() %>% 
+      pull(data)
+    
+    
+    }
 ```
 
