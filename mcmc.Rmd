@@ -172,10 +172,18 @@ rest_test$B[1000]
 
 ## Test prediction
 ```{r}
+## Initial value
+ini.mu = c(50,rep(0,4))
+ini.sig = .5
+ini.bsig = diag(.5,5,5)
+
+## Prediction for each hurricane
+set.seed(100)
+res = NULL
 ids = unique(hurrican$id)
   for (i in 1:length(ids)){
     hurr_i <- hurrican %>% filter(id == ids[i])
-    trRow <- createDataPartition(hurr_i, p = 0.8)
+    trRow <- createDataPartition(hurr_i$wind_kt_2, p = 0.8, list = F)
     ## Train
     hurr_train = hurr_i[trRow,]
     ## Test
@@ -190,7 +198,24 @@ ids = unique(hurrican$id)
       nest() %>% 
       pull(data)
     
+    ##MCMC
+    rest_test = mcmc(x = Xlist_train, y = Ylist_train, ini.mu, ini.bsig, ini.sig, niter = 1000)
+    beta_coef = NULL
     
+    ## Take the mean value for coefficients
+    for (j in 800:1000) {
+      beta_coef = rbind(beta_coef, rest_test$B[j][[1]])
     }
+
+    beta_coef_mean = colMeans(beta_coef)
+    pred_test =  as.matrix(hurr_test[2:6]) %*% as.matrix(beta_coef_mean)
+    
+    ## RMSE
+    RMSE_value = RMSE(pred_test, hurr_test$wind_kt_2)
+    
+    res = rbind(res, c(i, RMSE_value))
+  }
+res
+
 ```
 
