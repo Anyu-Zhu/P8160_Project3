@@ -70,5 +70,12 @@ sigma_inv = function(B, mu){
   sigmaws = matrix(sigmaws, nrow = d, ncol = d)
   return(sigmaws)
 }
+
+mu_est = function(betai, SigmaB){
+  col_mu = colMeans(betai)
+  n = nrow(betai)
+  mu = mvrnorm(1, col_mu, solve(SigmaB)/n) 
+  return(mu)
+}
 ```
 
