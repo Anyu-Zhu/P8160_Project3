@@ -6,6 +6,7 @@ output: html_document
 ```{r setup, message = FALSE}
 library(tidyverse)
 library(lubridate)
+library(extraDistr)
 ```
 
 ```{r}
@@ -19,10 +20,11 @@ hurrican <- read_csv("./hurrican703.csv") %>%
          longitude_d = lead(longitude) - longitude,
          wind_kt_d = lead(wind_kt) - wind_kt,
          wind_kt_2 = lead(wind_kt)) %>% 
-  na.omit()
+  na.omit() 
 ```
 
 
+<<<<<<< HEAD
 ```{r parameters}
 sigma_inv = function(B, mu){
   d = nrow(B) # d is number of hurricane
@@ -39,5 +41,31 @@ sigma_inv = function(B, mu){
   sigmaws = matrix(sigmaws, nrow = 5, ncol = 5)
   return(sigmaws)
   }
+=======
+```{r}
+## beta
+
+ids = unique(hurrican$id)
+n = length(unique(hurrican$id))
+
+# B for beta matrix
+ssr = 0
+for (i in 1:n){
+  hurr_i <- hurrican %>% filter(id == ids[i])
+  y = hurr_i[,2]
+  x = cbind(rep(1, nrow(hurr_i)), hurr_i[, 3:6])
+  x = as.matrix(x)
+  ssr = sum((y - x %*% t(B[i]))^2)
+  res = rbind(res, ssr)
+}
+
+sigma <- function(){
+  alpha = sum_ki/2 + 2
+  beta = res/2
+  sigma = rinvgamma(1, alpha, beta)
+  return(sigma)
+}
+
+>>>>>>> d8f7662fb9451230084ce4e06d3a88416ee77111
 ```
 
