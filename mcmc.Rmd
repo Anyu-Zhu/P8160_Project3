@@ -7,6 +7,7 @@ output: html_document
 library(tidyverse)
 library(lubridate)
 library(extraDistr)
+library(rWishart)
 ```
 
 ```{r}
@@ -29,8 +30,7 @@ hurrican <- read_csv("./hurrican703.csv") %>%
 ```
 
 
-```{r}
-## beta
+```{r parameters}
 
 ids = unique(hurrican$id)
 n = length(unique(hurrican$id))
@@ -53,5 +53,21 @@ sigma <- function(){
   return(sigma)
 }
 
+#big sigma inverse
+sigma_inv = function(B, mu){
+  d = nrow(B) # d is number of hurricane
+  
+  scalematx = diag(0,5,5)
+  
+  for (i in 1:d) {
+    betai = B[i,]
+    scalematx = scalematx + (betai - mu) %*% t(betai - mu)
+  }
+  
+  omega = scalematx + diag(1,5,5) #omega is the scale matrix
+  sigmaws = rinvwishart(1, nu = d+1, Omega = omega, checkSymmetry = F) 
+  sigmaws = matrix(sigmaws, nrow = 5, ncol = 5)
+  return(sigmaws)
+  }
 ```
 
