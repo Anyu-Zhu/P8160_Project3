@@ -28,21 +28,45 @@ hurrican <- read_csv("./hurrican703.csv") %>%
          wind_kt_2 = lead(wind_kt)) %>% 
   na.omit() %>% 
   mutate(intercept = 1) %>% 
-  relocate(13,14,9,10,11,12)
+  relocate(13,14,9,10,11,12) 
 
+Xlist = hurrican %>% 
+  select(2:6, id) %>% 
+  nest() %>% 
+  pull(data)
 
+Ylist = hurrican %>% 
+  select(1, id) %>% 
+  nest() %>% 
+  pull(data)
 ```
 
+```{r}
+# B for beta matrix
+betai = function(x, y, beta, sigma_sq, sigma_inv){
+  res = vector("list", length = length(x))
+  # Beta_i function ~ N(V^-1*M, V^-1)
+  for (i in 1:length(x)){
+    x = as.matrix(x[[i]])
+    y = as.vector(y[[i]])
+    k = sigma_inv + sigma_sq^(-1) * t(x) %*% x
+    m = sigma_sq^(-1) * (t(y) %*% x)  + t(beta) %*% sigma_inv
+    varcov = solve(k)
+    mu = varcov %*% t(m)
+    bi = mvrnorm(1, mu = mu, Sigma = varcov)
+    res[[i]] = list(bi = bi)
+  }
+  # Final res is the 700 x 5 matrix 
+  return(res)
+}
+```
 
-```{r parameters}
-
-ids = unique(hurrican$id)
+```{r}
+## sigma_sq
 n = length(unique(hurrican$id))
 sum_ki = 0
-
-# B for beta matrix
-ssr = 0
-for (i in 1:n) {
+res = NULL
+for (i in 1:n){
   hurr_i <- hurrican %>% filter(id == ids[i])
   rowcount <- nrow(hurr_i)
   sum_ki = sum_ki + rowcount
@@ -53,14 +77,16 @@ for (i in 1:n) {
   ssr = sum((y - x %*% t(B[i]))^2)
   res = rbind(res, ssr)
 }
-
-sigma <- function(){
+sigma_sq <- function(sum_ki, res){
   alpha = sum_ki/2 + 2
   beta = res/2
   sigma = rinvgamma(1, alpha, beta)
   return(sigma)
 }
+```
 
+
+```{r}
 #big sigma inverse
 sigma_inv = function(B, mu){
   n = nrow(B) # n is number of hurricane
@@ -78,7 +104,11 @@ sigma_inv = function(B, mu){
   sigmaws = matrix(sigmaws, nrow = d, ncol = d)
   return(sigmaws)
 }
+```
 
+
+```{r}
+## Mu
 mu_est = function(betai, SigmaB){
   col_mu = colMeans(betai)
   n = nrow(betai)
@@ -86,4 +116,3 @@ mu_est = function(betai, SigmaB){
   return(mu)
 }
 ```
-
