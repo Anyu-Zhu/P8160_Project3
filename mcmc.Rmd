@@ -9,6 +9,7 @@ library(lubridate)
 library(extraDistr)
 library(rWishart)
 library(MASS)
+library(matrixsampling)
 ```
 
 ```{r}
@@ -45,7 +46,7 @@ Ylist = hurrican %>%
 ```{r}
 # B for beta matrix
 B = function(x_dat, y_dat, mu_est, sigma_sq, sigma_inv){
-  res = vector("list", length = length(x_dat))
+  res = NULL
   n = length(x_dat)
   # Beta_i function ~ N(V^-1*M, V^-1)
   for (i in 1:n){
@@ -56,20 +57,22 @@ B = function(x_dat, y_dat, mu_est, sigma_sq, sigma_inv){
     varcov = solve(k)
     mu = varcov %*% t(m)
     bi = mvrnorm(1, mu = mu, Sigma = varcov)
-    res[[i]] = list(bi = bi)
+    res = rbind(res, bi)
   }
   # Final res is the 700 x 5 matrix 
-  return(res)
+  return(as.matrix(res))
 }
 
-B(Xlist[1:10], Ylist[1:10], mu_est = ini.mu, sigma_sq = ini.sig, sigma_inv = ini.bsig)
+test_B = B(Xlist[1:10], Ylist[1:10], mu_est = ini.mu, sigma_sq = ini.sig, sigma_inv = ini.bsig)
+
+as.matrix(test_B[1,])
 ```
 
 ```{r}
 ## sigma_sq
 sigma_sq <- function(B){
   
-  n = length(unique(hurrican$id))
+  n = length(10)
   sum_ki = 0
   res = NULL
   ids = unique(hurrican$id)
@@ -79,8 +82,10 @@ sigma_sq <- function(B){
     sum_ki = sum_ki + rowcount
   
     y = hurr_i[,1]
-    x = cbind(rep(1, nrow(hurr_i)), hurr_i[, 2:6]) %>% as.matrix()
-    ssr = sum((y - x %*% t(B[i]))^2)
+    x = hurr_i[, 2:6] %>% as.matrix()
+    z = as.matrix(B[i,])
+
+    ssr = sum((y - x %*% z)^2)
     res = rbind(res, ssr)
   }
   
@@ -89,6 +94,7 @@ sigma_sq <- function(B){
   sigma = rinvgamma(1, alpha, beta)
   return(sigma)
 }
+
 ```
 
 
@@ -101,8 +107,8 @@ sigma_inv = function(B, mu_est){
   scalematx = diag(0,d,d)
   
   for (i in 1:n) {
-    betai = B[i,]
-    scalematx = scalematx + t(betai - mu_est) %*% (betai - mu_est)
+    betai = as.matrix(B[i,])
+    scalematx = scalematx + (betai - (mu_est)) %*% t(betai - mu_est)
   }
   
   omega = scalematx + diag(1,d,d) #omega is the scale matrix
@@ -110,6 +116,8 @@ sigma_inv = function(B, mu_est){
   sigmaws = matrix(sigmaws, nrow = d, ncol = d)
   return(sigmaws)
 }
+
+sigma_inv(test_B, ini.mu)
 ```
 
 
@@ -143,8 +151,8 @@ mcmc = function(x_dat, y_dat, ini.mu, ini.bsig, ini.sig, niter){
     sigma[i] = sigma_sq(B = beta.i[[i]])
     b.sig[[i]] = sigma_inv(B = beta.i[[i]], mu_est = mu[[i-1]])
     mu[[i]] = mu_est(B = beta.i[[i]], sigma_inv = b.sig[[i]])
-
-    }
+  }
+  
   return(list(B = beta.i, sigma_sq = sigma, sigma_inv = b.sig, mu_est = mu))
 }
 ```
@@ -155,6 +163,7 @@ ini.mu = c(50,rep(0,4))
 ini.sig = .5
 ini.bsig = diag(.5,5,5)
 
-mcmc(x = Xlist[1:10], y = Ylist[1:10], ini.mu, ini.sig, ini.bsig, niter = 100)
+rest_test = mcmc(x = Xlist[1:10], y = Ylist[1:10], ini.mu, ini.bsig, ini.sig, niter = 100)
+rest_test$B[100]
 ```
 
