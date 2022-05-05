@@ -214,6 +214,7 @@ ids = unique(hurrican$id)
     ## RMSE
     RMSE_value = RMSE(pred_test, hurr_test$wind_kt_2)
     
+    ## Result for each hurricane, RMSE test value and final coefficients
     res = rbind(res, c(i, RMSE_value, final_coef))
   }
 res
