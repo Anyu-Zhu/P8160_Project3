@@ -43,6 +43,13 @@ lasso_dam_fit <- train(x = x_dam, y = y_dam,
 ggplot(lasso_dam_fit, highlight = T)
 lasso_dam_fit$bestTune
 coef(lasso_dam_fit$finalModel, lasso_dam_fit$bestTune$lambda)
+
+q6_df_dam = q6_df %>% 
+  relocate(4) %>%
+  dplyr::select(-5)
+
+dam_fit = lm(Damage ~ Year + Maxspeed + Total.Pop + Percent.USA, data = q6_df_dam)
+summary(dam_fit)
 ```
 
 ```{r}
