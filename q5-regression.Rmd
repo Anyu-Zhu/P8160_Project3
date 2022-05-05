@@ -1,0 +1,34 @@
+---
+title: "Q5-regression"
+date: "5/4/2022"
+output: pdf_document
+---
+
+```{r}
+hurrican <- read_csv("./hurrican703.csv") %>% 
+  janitor::clean_names() %>% 
+  separate(time, into = c("date", "hour"), sep = " ") %>% 
+  filter(hour == "00:00:00)" | hour == "06:00:00)" | hour == "12:00:00)" | hour == "18:00:00)") %>% 
+  mutate(hour = str_replace(hour, ":00:00\\)", ""),
+         hour = as.numeric(hour),
+         date = str_replace(date, "\\(", ""),
+         date = yday(date),
+         nature = as.numeric(as.factor(nature))) %>% 
+  group_by(id) %>% 
+  mutate(baseline_month = first(month),
+         latitude_d = lead(latitude) - latitude,
+         longitude_d = lead(longitude) - longitude,
+         wind_kt_d = lead(wind_kt) - wind_kt,
+         wind_kt_2 = lead(wind_kt)) %>% 
+  na.omit() %>%
+  rename(year = season) %>% 
+  ungroup() %>% 
+  mutate(season = case_when(baseline_month %in% c("December","January","February") ~ "Winter",
+                   baseline_month %in% c("March","April","May") ~ "Spring",
+                   baseline_month %in% c("June","July","August") ~ "Summer",
+                   baseline_month %in% c("September","October","November") ~ "Fall"),
+         nature = as.factor(nature)) %>% 
+  relocate(14,9,11,12,13,15,2,4) 
+
+```
+
