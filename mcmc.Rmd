@@ -22,8 +22,7 @@ hurrican <- read_csv("./hurrican703.csv") %>%
   mutate(hour = str_replace(hour, ":00:00\\)", ""),
          hour = as.numeric(hour),
          date = str_replace(date, "\\(", ""),
-         date = yday(date),
-         nature = as.numeric(as.factor(nature))) %>% 
+         date = yday(date)) %>% 
   group_by(id) %>% 
   mutate(latitude_d = lead(latitude) - latitude,
          longitude_d = lead(longitude) - longitude,
@@ -31,7 +30,9 @@ hurrican <- read_csv("./hurrican703.csv") %>%
          wind_kt_2 = lead(wind_kt)) %>% 
   na.omit() %>% 
   mutate(intercept = 1) %>% 
-  relocate(13,14,9,10,11,12) 
+  relocate(13,14,9,10,11,12) %>%
+  ### Drop the hurricane data point( < 5) 
+  filter(!(id %in% c("TEN:UNNAMED.1988","EIGHT.2013", "TEN.2007", "JOSE.2005")))
 
 Xlist = hurrican %>% 
   dplyr::select(2:6, id) %>% 
@@ -64,9 +65,6 @@ B = function(x_dat, y_dat, mu_est, sigma_sq, sigma_inv){
   return(as.matrix(res))
 }
 
-test_B = B(Xlist[1:10], Ylist[1:10], mu_est = ini.mu, sigma_sq = ini.sig, sigma_inv = ini.bsig)
-
-as.matrix(test_B[1,])
 ```
 
 ```{r}
@@ -96,7 +94,6 @@ sigma_sq <- function(B){
   return(sigma)
 }
 
-sigma_sq(test_B)
 ```
 
 
@@ -119,7 +116,6 @@ sigma_inv = function(B, mu_est){
   return(sigmaws)
 }
 
-sigma_inv(test_B, ini.mu)
 ```
 
 
@@ -165,9 +161,9 @@ ini.mu = c(50,rep(0,4))
 ini.sig = .5
 ini.bsig = diag(.5,5,5)
 
-rest_test = mcmc(x = Xlist[1:10], y = Ylist[1:10], ini.mu, ini.bsig, ini.sig, niter = 1000)
+rest_test = mcmc(x = Xlist, y = Ylist, ini.mu, ini.bsig, ini.sig, niter = 500)
 
-rest_test$B[1000][[1]]
+rest_test$B[499][[1]]
 ```
 
 ## Test prediction
@@ -178,10 +174,10 @@ ini.sig = .5
 ini.bsig = diag(.5,5,5)
 
 ## Prediction for each hurricane
-set.seed(100)
+set.seed(666)
 res = NULL
 ids = unique(hurrican$id)
-  for (i in 1:10){
+  for (i in 1:length(ids)){
     hurr_i <- hurrican %>% filter(id == ids[i])
     trRow <- createDataPartition(hurr_i$wind_kt_2, p = 0.8, list = F)
     ## Train
@@ -203,7 +199,7 @@ ids = unique(hurrican$id)
     beta_coef = NULL
     
     ## Take the mean value for coefficients
-    for (j in 800:1000) {
+    for (j in 900:1000) {
       beta_coef = rbind(beta_coef, rest_test$B[j][[1]])
     }
 
@@ -218,7 +214,5 @@ ids = unique(hurrican$id)
     res = rbind(res, c(i, RMSE_value, final_coef))
   }
 res
-
-
 ```
 
