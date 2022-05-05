@@ -165,9 +165,9 @@ ini.mu = c(50,rep(0,4))
 ini.sig = .5
 ini.bsig = diag(.5,5,5)
 
-rest_test = mcmc(x = Xlist[1:100], y = Ylist[1:100], ini.mu, ini.bsig, ini.sig, niter = 1000)
+rest_test = mcmc(x = Xlist[1:10], y = Ylist[1:10], ini.mu, ini.bsig, ini.sig, niter = 1000)
 
-rest_test$B[1000]
+rest_test$B[1000][[1]]
 ```
 
 ## Test prediction
@@ -181,7 +181,7 @@ ini.bsig = diag(.5,5,5)
 set.seed(100)
 res = NULL
 ids = unique(hurrican$id)
-  for (i in 1:length(ids)){
+  for (i in 1:10){
     hurr_i <- hurrican %>% filter(id == ids[i])
     trRow <- createDataPartition(hurr_i$wind_kt_2, p = 0.8, list = F)
     ## Train
@@ -208,14 +208,16 @@ ids = unique(hurrican$id)
     }
 
     beta_coef_mean = colMeans(beta_coef)
+    final_coef = colMeans(beta_coef) %>% as.double()
     pred_test =  as.matrix(hurr_test[2:6]) %*% as.matrix(beta_coef_mean)
     
     ## RMSE
     RMSE_value = RMSE(pred_test, hurr_test$wind_kt_2)
     
-    res = rbind(res, c(i, RMSE_value))
+    res = rbind(res, c(i, RMSE_value, final_coef))
   }
 res
+
 
 ```
 
