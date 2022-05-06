@@ -26,13 +26,14 @@ hurrican <- read_csv("./hurrican703.csv") %>%
   group_by(id) %>% 
   mutate(latitude_d = lead(latitude) - latitude,
          longitude_d = lead(longitude) - longitude,
-         wind_kt_d = lead(wind_kt) - wind_kt,
+         wind_kt_d = wind_kt - lag(wind_kt),
          wind_kt_2 = lead(wind_kt)) %>% 
   na.omit() %>% 
   mutate(intercept = 1) %>% 
   relocate(13,14,9,10,11,12) %>%
   ### Drop the hurricane data point( < 5) 
-  filter(!(id %in% c("TEN:UNNAMED.1988","EIGHT.2013", "TEN.2007", "JOSE.2005")))
+  filter(!(id %in% c("TEN:UNNAMED.1988","EIGHT.2013", "TEN.2007", "JOSE.2005", "AMELIA.1978",
+                     "BRET.2005", "FERNAND.2013", "FIFTEEN:UNNAMED.1988", "KYLE.1996")))
 
 Xlist = hurrican %>% 
   dplyr::select(2:6, id) %>% 
@@ -64,7 +65,6 @@ B = function(x_dat, y_dat, mu_est, sigma_sq, sigma_inv){
   # Final res is the 700 x 5 matrix 
   return(as.matrix(res))
 }
-
 ```
 
 ```{r}
@@ -161,12 +161,46 @@ ini.mu = c(50,rep(0,4))
 ini.sig = .5
 ini.bsig = diag(.5,5,5)
 
-rest_test = mcmc(x = Xlist, y = Ylist, ini.mu, ini.bsig, ini.sig, niter = 500)
+Xlist1 = hurrican %>%
+  ungroup() %>% 
+  dplyr::select(2:6) %>% 
+  nest() %>% 
+  pull(data)
 
-rest_test$B[499][[1]]
+Ylist1 = hurrican %>%
+  ungroup() %>% 
+  dplyr::select(1) %>% 
+  nest() %>% 
+  pull(data)
+
+rest_test_all = mcmc(x = Xlist[5], y = Ylist[5], ini.mu, ini.bsig, ini.sig, niter = 10000)
+
+all_coef = NULL
+for (j in 9500:10000) {
+      all_coef = rbind(all_coef, rest_test_all$B[j][[1]])
+}
+
+colMeans(all_coef)
+
+plot_beta_ch = NULL
+for (i in 9500:10000) {
+  plot_beta_ch = rbind(plot_beta_ch, rest_test_all$B[i][[1]])
+}
+colnames(plot_beta_ch) = c("Intercept", "beta1", "beta2", "beta3", "beta4")
+
+plot_df = plot_beta_ch %>% 
+  as.data.frame() %>% 
+  mutate(index = 9500:10000) %>% 
+  pivot_longer(cols = 1:5,
+               names_to = "Predictor",
+               values_to = "Coefficient")
+
+ggplot(plot_df, aes(x = index, y = Coefficient)) +
+  geom_line() +
+  facet_grid(Predictor ~ ., scales = "free")
 ```
 
-## Test prediction
+## Test prediction for each hurricane
 ```{r}
 ## Initial value
 ini.mu = c(50,rep(0,4))
@@ -214,5 +248,7 @@ ids = unique(hurrican$id)
     res = rbind(res, c(i, RMSE_value, final_coef))
   }
 res
+
+write.csv(res, "res_1.csv")
 ```
 
