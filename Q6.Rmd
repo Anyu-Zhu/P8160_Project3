@@ -1,0 +1,79 @@
+---
+title: "Q6"
+output: pdf_document
+---
+
+```{r}
+library(caret)
+```
+
+```{r message=FALSE, warning=FALSE}
+q6_df = read_csv("hurricanoutcome2.csv") %>% 
+  separate(Damage, c("a", "Damage"), sep = 1) %>% 
+  dplyr::select(-3) %>% 
+  mutate(Damage = as.numeric(Damage)) %>% 
+  relocate(1,5,6) %>%
+  dplyr::select(-1) %>% 
+  mutate(Month = case_when(Month %in% c("December","January","February") ~ "Winter",
+                   Month %in% c("March","April","May") ~ "Spring",
+                   Month %in% c("June","July","August") ~ "Summer",
+                   Month %in% c("September","October","November") ~ "Fall")) %>% 
+  rename(Year = Season)
+
+```
+
+```{r}
+## Damage Data
+q6_df_1 = q6_df %>% 
+  relocate(4) %>%
+  dplyr::select(-5) %>% 
+  mutate_each_(funs(scale(.)), c(4:12))
+
+x_dam <- model.matrix(Damage ~., q6_df_1)[,-1]
+y_dam <- q6_df_1$Damage
+
+## Model fit
+set.seed(100)
+lasso_dam_fit <- train(x = x_dam, y = y_dam,
+                       method = "glmnet",
+                       tuneGrid = expand.grid(alpha = 1,
+                                              lambda = exp(seq(2, -2, length = 100))),
+                       trControl = trainControl(method = "LOOCV"))
+
+ggplot(lasso_dam_fit, highlight = T)
+lasso_dam_fit$bestTune
+coef(lasso_dam_fit$finalModel, lasso_dam_fit$bestTune$lambda)
+
+q6_df_dam = q6_df %>% 
+  relocate(4) %>%
+  dplyr::select(-5)
+
+dam_fit = lm(Damage ~ Year + Maxspeed + Total.Pop + Percent.USA, data = q6_df_dam)
+summary(dam_fit)
+```
+
+```{r}
+## Death Data
+q6_df_2 = q6_df %>% 
+  relocate(5) %>%
+  dplyr::select(-5)
+
+x_death <- model.matrix(Deaths ~., q6_df_2)[,-1]
+y_death <- q6_df_2$Deaths
+
+## Model fit
+set.seed(100)
+lasso_death_fit <- train(x = x_death, y = y_death,
+                       method = "glmnet",
+                       family = "poisson",
+                       tuneGrid = expand.grid(alpha = 1,
+                                              lambda = exp(seq(-10, -20, length = 100))),
+                       trControl = trainControl(method = "LOOCV"))
+
+ggplot(lasso_death_fit, highlight = T)
+lasso_death_fit$bestTune
+coef(lasso_death_fit$finalModel, lasso_death_fit$bestTune$lambda)
+
+poi_fit = glm(Deaths ~ ., family = poisson(link=log), data = q6_df_2)
+summary(poi_fit)
+```
