@@ -111,7 +111,7 @@ sigma_inv = function(B, mu_est){
   }
   
   omega = scalematx + diag(1,d,d) #omega is the scale matrix
-  sigmaws = rinvwishart(1, nu = n + d + 1, Omega = omega, checkSymmetry = F) 
+  sigmaws = rinvwishart(1, nu = n + 3 * d + 3, Omega = omega, checkSymmetry = F) 
   sigmaws = matrix(sigmaws, nrow = d, ncol = d)
   return(sigmaws)
 }
@@ -173,24 +173,19 @@ Ylist1 = hurrican %>%
   nest() %>% 
   pull(data)
 
-rest_test_all = mcmc(x = Xlist[2], y = Ylist[2], ini.mu, ini.bsig, ini.sig, niter = 10000)
+rest_test_all = mcmc(x = Xlist[560], y = Ylist[560], ini.mu, ini.bsig, ini.sig, niter = 10000)
 
-all_coef = NULL
-for (j in 5000:10000) {
-      all_coef = rbind(all_coef, rest_test_all$B[j][[1]])
-}
-
-colMeans(all_coef)
+all_coef = colMeans(t(matrix(unlist(rest_test_all$B), 5, 10000)))
 
 plot_beta_ch = NULL
-for (i in 5000:10000) {
+for (i in 1:10000) {
   plot_beta_ch = rbind(plot_beta_ch, rest_test_all$B[i][[1]])
 }
 colnames(plot_beta_ch) = c("Intercept", "beta1", "beta2", "beta3", "beta4")
 
 plot_df = plot_beta_ch %>% 
   as.data.frame() %>% 
-  mutate(index = 5000:10000) %>% 
+  mutate(index = 1:10000) %>% 
   pivot_longer(cols = 1:5,
                names_to = "Predictor",
                values_to = "Coefficient")
@@ -198,8 +193,6 @@ plot_df = plot_beta_ch %>%
 ggplot(plot_df, aes(x = index, y = Coefficient)) +
   geom_line() +
   facet_grid(Predictor ~ ., scales = "free")
-
-hist(plot_df$Intercept)
 ```
 
 ## Test prediction for each hurricane
@@ -213,7 +206,7 @@ ini.bsig = diag(.5,5,5)
 set.seed(666)
 res = NULL
 ids = unique(hurrican$id)
-  for (i in 1:5){
+  for (i in 560:562){
     hurr_i <- hurrican %>% filter(id == ids[i])
     trRow <- createDataPartition(hurr_i$wind_kt_2, p = 0.8, list = F)
     ## Train
@@ -231,17 +224,10 @@ ids = unique(hurrican$id)
       pull(data)
     
     ##MCMC
-    rest_test = mcmc(x = Xlist_train, y = Ylist_train, ini.mu, ini.bsig, ini.sig, niter = 10000)
-    beta_coef = NULL
-    
-    ## Take the mean value for coefficients
-    for (j in 5000:10000) {
-      beta_coef = rbind(beta_coef, rest_test$B[j][[1]])
-    }
-
-    beta_coef_mean = colMeans(beta_coef)
-    final_coef = colMeans(beta_coef) %>% as.double()
-    pred_test =  as.matrix(hurr_test[2:6]) %*% as.matrix(beta_coef_mean)
+    rest_test = mcmc(x = Xlist_train, y = Ylist_train, ini.mu, ini.bsig, ini.sig, niter = 5000)
+    beta_coef = colMeans(t(matrix(unlist(rest_test$B), 5, 5000))[4000:5000, ])
+    final_coef = beta_coef %>% as.double()
+    pred_test =  as.matrix(hurr_test[2:6]) %*% as.matrix(beta_coef)
     
     ## lm coefficients
     lm_fit = lm(wind_kt_2 ~ wind_kt + latitude_d + longitude_d + wind_kt_d, data = hurr_train)
@@ -253,6 +239,20 @@ ids = unique(hurrican$id)
     ## Result for each hurricane, RMSE test value and final coefficients
     res = rbind(res, c(i, RMSE_value, final_coef, lm_fit_coef))
   }
+
 res
+## write.csv(res, file = "res560-691.csv")
 ```
+
+```{r}
+dat = data.frame(res)
+
+dat = dat %>% 
+  dplyr::select(-1:-2) %>% 
+  drop_na()
+
+## qq plot to see whether lm and mcmc follow the same trend
+qqplot(dat$V5, dat$latitude_d, xlab = "mcmc", ylab = "lm", main = "Q-Q Plot")
+```
+
 
