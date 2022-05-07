@@ -203,7 +203,7 @@ Ylist_test = hurr_test %>%
   pull(data)
 
 ## MCMC to obtain coefficients beta
-rest_final = mcmc(x = Xlist_train, y = Ylist_train, ini.mu, ini.bsig, ini.sig, niter = 10000)
+rest_final = mcmc(x = Xlist_train, y = Ylist_train, ini.mu, ini.bsig, ini.sig, niter = 100)
 
 ## final results for each hurricane and predictor
 beta_coef_all = NULL
@@ -211,25 +211,26 @@ beta_coef = NULL
 beta_coef_final = NULL
 
 for (i in 1:691) {
-  hurr_train = Xlist_train[[1]]
-  hurr_test = Xlist_test[[1]]
+  hurr_train_x = Xlist_train[[i]]
+  hurr_train_y = Ylist_train[[i]]
+  hurr_train = cbind(hurr_train_y, hurr_train_x)
+  hurr_test = Xlist_test[[i]]
   
-  for (j in 9000:10000) {
-    beta_coef_all = rest_final$B[[j]][i, ]
-    beta_coef = rbind(beta_coef, beta_coef_all)
-  }
   ## Coefficients for each hurricane for MCMC
-  beta_coef = colMeans(beta_coef)
+  beta_coef = colMeans(t(matrix(unlist(rest_test$B), 5, 100))[50:100, ])
+  mu_coef = colMeans(t(matrix(unlist(rest_test$mu_est), 5, 100))[50:100, ])
   pred_test = as.matrix(hurr_test) %*% as.matrix(beta_coef)
+  
+  ## Mu for each hurricane
   
   ## lm coefficients
   lm_fit = lm(wind_kt_2 ~ wind_kt + latitude_d + longitude_d + wind_kt_d, data = hurr_train)
   lm_fit_coef = lm_fit$coefficients
   
   ## RMSE
-  RMSE_value = RMSE(pred_test, Ylist_test[[1]]$wind_kt_2)
+  RMSE_value = RMSE(pred_test, Ylist_test[[i]]$wind_kt_2)
   
-  beta_coef_final = rbind(beta_coef_final, c(RMSE_value, beta_coef, lm_fit_coef))
+  beta_coef_final = rbind(beta_coef_final, c(RMSE_value, beta_coef, lm_fit_coef, mu_coef))
 }
 ```
 
