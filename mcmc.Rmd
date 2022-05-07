@@ -155,6 +155,64 @@ mcmc = function(x_dat, y_dat, ini.mu, ini.bsig, ini.sig, niter){
 }
 ```
 
+```{r}
+ini.mu = c(50,rep(0,4))
+ini.sig = .5
+ini.bsig = diag(.5,5,5)
+
+## Data Partition 
+hurr_test = NULL
+hurr_train = NULL
+ids = unique(hurrican$id)
+for (i in 1:length(ids)) {
+    hurr_i <- hurrican %>% filter(id == ids[i])
+    
+    ## separate data
+    fold_index = cut(seq(1,nrow(hurr_i)),breaks = 5, labels = FALSE)
+    hurr_train_1 = hurr_i[fold_index != 1, ]
+    hurr_test_1 = hurr_i[fold_index == 1, ]
+    
+    ## Combine data
+    hurr_train = rbind(hurr_train, hurr_train_1)
+    hurr_test = rbind(hurr_test, hurr_test_1)
+}
+
+## Data into list for MCMC
+Xlist_train = hurr_train %>%
+  group_by(id) %>% 
+  dplyr::select(2:6, id) %>% 
+  nest() %>% 
+  pull(data)
+
+Ylist_train = hurr_train %>%
+  group_by(id) %>%
+  dplyr::select(1, id) %>% 
+  nest() %>% 
+  pull(data)
+
+## MCMC to obtain coefficients beta
+rest_final = mcmc(x = Xlist_train, y = Ylist_train, ini.mu, ini.bsig, ini.sig, niter = 1000)
+
+## final results for each hurricane and predictor
+rest_final$B[[1]][691,]
+
+beta_coef_all = NULL
+beta_coef = NULL
+beta_coef_final = NULL
+
+for (i in 1:691) {
+  for (j in 5:10) {
+    beta_coef_all = rest_final$B[[j]][i, ]
+    beta_coef = rbind(beta_coef, beta_coef_all)
+  }
+  beta_coef = colMeans(beta_coef)
+  beta_coef_final = rbind(beta_coef_final, beta_coef)
+}
+
+
+```
+
+
 ### Test
 ```{r}
 ini.mu = c(50,rep(0,4))
@@ -173,7 +231,9 @@ Ylist1 = hurrican %>%
   nest() %>% 
   pull(data)
 
-rest_test_all = mcmc(x = Xlist1, y = Ylist1, ini.mu, ini.bsig, ini.sig, niter = 5000)
+rest_test_all = mcmc(x = Xlist, y = Ylist, ini.mu, ini.bsig, ini.sig, niter = 10)
+
+rest_test_all$B[[2]]
 
 all_coef = colMeans(t(matrix(unlist(rest_test_all$B), 5, 5000)))
 
@@ -192,6 +252,7 @@ plot_df = plot_beta_ch %>%
 
 ggplot(plot_df, aes(x = index, y = Coefficient)) +
   geom_line() +
+  theme_bw() + 
   facet_grid(Predictor ~ ., scales = "free")
 
 pred_test_1 =  as.matrix(Xlist1[[1]]) %*% as.matrix(all_coef)
@@ -209,7 +270,7 @@ ini.bsig = diag(.5,5,5)
 set.seed(666)
 res = NULL
 ids = unique(hurrican$id)
-  for (i in 1:20){
+  for (i in 1:length(ids)){
     hurr_i <- hurrican %>% filter(id == ids[i])
     #trRow <- createDataPartition(1:12, p = 0.8, list = F)
     ## Train
@@ -233,8 +294,9 @@ ids = unique(hurrican$id)
       pull(data)
     
     ##MCMC
-    rest_test = mcmc(x = Xlist_train, y = Ylist_train, ini.mu, ini.bsig, ini.sig, niter = 2000)
-    beta_coef = colMeans(t(matrix(unlist(rest_test$B), 5, 2000))[1000:2000, ])
+    rest_test = mcmc(x = Xlist_train, y = Ylist_train, ini.mu, ini.bsig, ini.sig, niter = 5000)
+    beta_coef = colMeans(t(matrix(unlist(rest_test$B), 5, 5000))[3500:5000, ])
+    mu_coef = colMeans(t(matrix(unlist(rest_test$mu_est), 5, 5000))[3500:5000, ])
     final_coef = beta_coef %>% as.double()
     pred_test =  as.matrix(hurr_test[2:6]) %*% as.matrix(beta_coef)
     
@@ -246,11 +308,11 @@ ids = unique(hurrican$id)
     RMSE_value = RMSE(pred_test, hurr_test$wind_kt_2, na.rm = T)
     
     ## Result for each hurricane, RMSE test value and final coefficients
-    res = rbind(res, c(i, RMSE_value, final_coef, lm_fit_coef))
+    res = rbind(res, c(i, RMSE_value, final_coef, lm_fit_coef, mu_coef))
   }
 
 res
-write.csv(res, file = "res560-691.csv")
+
 ```
 
 ```{r}
