@@ -17,7 +17,7 @@ hurrican <- read_csv("./hurrican703.csv") %>%
   mutate(baseline_month = first(month),
          latitude_d = lead(latitude) - latitude,
          longitude_d = lead(longitude) - longitude,
-         wind_kt_d = lead(wind_kt) - wind_kt,
+         wind_kt_d = wind_kt - lag(wind_kt),
          wind_kt_2 = lead(wind_kt)) %>% 
   na.omit() %>%
   rename(year = season) %>% 
@@ -29,7 +29,8 @@ hurrican <- read_csv("./hurrican703.csv") %>%
          nature = as.factor(nature)) %>% 
   relocate(14,9,11,12,13,15,2,4) %>% 
   ### Drop the hurricane data point( < 5) 
-  filter(!(id %in% c("TEN:UNNAMED.1988","EIGHT.2013", "TEN.2007", "JOSE.2005")))
+  filter(!(id %in% c("TEN:UNNAMED.1988","EIGHT.2013", "TEN.2007", "JOSE.2005", "AMELIA.1978",
+                     "BRET.2005", "FERNAND.2013", "FIFTEEN:UNNAMED.1988", "KYLE.1996")))
 
 name_1 = unique(hurrican$id)
 res_1 <- read_csv("./res_1.csv") %>% 
@@ -43,10 +44,21 @@ combine_res = left_join(res_1, hurrican, by = "id") %>%
 ```
 
 ```{r}
-##
+## beta1
 l1 = lm(beta_1 ~ season + year + nature, data = combine_res)
+summary(l1)
 
-## 
+plot(combine_res$year, combine_res$beta_2)
+## beta2
+l2 = lm(beta_2 ~ season + year + nature, data = combine_res)
+summary(l2)
+
+## beta3
+l3 = lm(beta_3 ~ season + year + nature, data = combine_res)
+summary(l3)
+
+## beta4 
 l4 = lm(beta_4 ~ season + year + nature, data = combine_res)
+summary(l4)
 ```
 

@@ -173,24 +173,24 @@ Ylist1 = hurrican %>%
   nest() %>% 
   pull(data)
 
-rest_test_all = mcmc(x = Xlist[5], y = Ylist[5], ini.mu, ini.bsig, ini.sig, niter = 10000)
+rest_test_all = mcmc(x = Xlist[2], y = Ylist[2], ini.mu, ini.bsig, ini.sig, niter = 10000)
 
 all_coef = NULL
-for (j in 9500:10000) {
+for (j in 5000:10000) {
       all_coef = rbind(all_coef, rest_test_all$B[j][[1]])
 }
 
 colMeans(all_coef)
 
 plot_beta_ch = NULL
-for (i in 9500:10000) {
+for (i in 5000:10000) {
   plot_beta_ch = rbind(plot_beta_ch, rest_test_all$B[i][[1]])
 }
 colnames(plot_beta_ch) = c("Intercept", "beta1", "beta2", "beta3", "beta4")
 
 plot_df = plot_beta_ch %>% 
   as.data.frame() %>% 
-  mutate(index = 9500:10000) %>% 
+  mutate(index = 5000:10000) %>% 
   pivot_longer(cols = 1:5,
                names_to = "Predictor",
                values_to = "Coefficient")
@@ -198,6 +198,8 @@ plot_df = plot_beta_ch %>%
 ggplot(plot_df, aes(x = index, y = Coefficient)) +
   geom_line() +
   facet_grid(Predictor ~ ., scales = "free")
+
+hist(plot_df$Intercept)
 ```
 
 ## Test prediction for each hurricane
@@ -211,7 +213,7 @@ ini.bsig = diag(.5,5,5)
 set.seed(666)
 res = NULL
 ids = unique(hurrican$id)
-  for (i in 1:length(ids)){
+  for (i in 1:5){
     hurr_i <- hurrican %>% filter(id == ids[i])
     trRow <- createDataPartition(hurr_i$wind_kt_2, p = 0.8, list = F)
     ## Train
@@ -229,11 +231,11 @@ ids = unique(hurrican$id)
       pull(data)
     
     ##MCMC
-    rest_test = mcmc(x = Xlist_train, y = Ylist_train, ini.mu, ini.bsig, ini.sig, niter = 1000)
+    rest_test = mcmc(x = Xlist_train, y = Ylist_train, ini.mu, ini.bsig, ini.sig, niter = 10000)
     beta_coef = NULL
     
     ## Take the mean value for coefficients
-    for (j in 900:1000) {
+    for (j in 5000:10000) {
       beta_coef = rbind(beta_coef, rest_test$B[j][[1]])
     }
 
@@ -241,14 +243,16 @@ ids = unique(hurrican$id)
     final_coef = colMeans(beta_coef) %>% as.double()
     pred_test =  as.matrix(hurr_test[2:6]) %*% as.matrix(beta_coef_mean)
     
+    ## lm coefficients
+    lm_fit = lm(wind_kt_2 ~ wind_kt + latitude_d + longitude_d + wind_kt_d, data = hurr_train)
+    lm_fit_coef = lm_fit$coefficients
+    
     ## RMSE
     RMSE_value = RMSE(pred_test, hurr_test$wind_kt_2)
     
     ## Result for each hurricane, RMSE test value and final coefficients
-    res = rbind(res, c(i, RMSE_value, final_coef))
+    res = rbind(res, c(i, RMSE_value, final_coef, lm_fit_coef))
   }
 res
-
-write.csv(res, "res_1.csv")
 ```
 

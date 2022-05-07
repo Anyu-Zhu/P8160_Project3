@@ -7,27 +7,67 @@ output: pdf_document
 library(caret)
 ```
 
+```{r}
+hurrican <- read_csv("./hurrican703.csv") %>% 
+  janitor::clean_names() %>% 
+  separate(time, into = c("date", "hour"), sep = " ") %>% 
+  filter(hour == "00:00:00)" | hour == "06:00:00)" | hour == "12:00:00)" | hour == "18:00:00)") %>% 
+  mutate(hour = str_replace(hour, ":00:00\\)", ""),
+         hour = as.numeric(hour),
+         date = str_replace(date, "\\(", ""),
+         date = yday(date)) %>% 
+  group_by(id) %>% 
+  mutate(baseline_month = first(month),
+         latitude_d = lead(latitude) - latitude,
+         longitude_d = lead(longitude) - longitude,
+         wind_kt_d = wind_kt - lag(wind_kt),
+         wind_kt_2 = lead(wind_kt)) %>% 
+  na.omit() %>%
+  rename(year = season) %>% 
+  ungroup() %>% 
+  mutate(season = case_when(baseline_month %in% c("December","January","February") ~ "Winter",
+                   baseline_month %in% c("March","April","May") ~ "Spring",
+                   baseline_month %in% c("June","July","August") ~ "Summer",
+                   baseline_month %in% c("September","October","November") ~ "Fall"),
+         nature = as.factor(nature)) %>% 
+  relocate(14,9,11,12,13,15,2,4) %>% 
+  ### Drop the hurricane data point( < 5) 
+  filter(!(id %in% c("TEN:UNNAMED.1988","EIGHT.2013", "TEN.2007", "JOSE.2005", "AMELIA.1978",
+                     "BRET.2005", "FERNAND.2013", "FIFTEEN:UNNAMED.1988", "KYLE.1996")))
+```
+
 ```{r message=FALSE, warning=FALSE}
 q6_df = read_csv("hurricanoutcome2.csv") %>% 
   separate(Damage, c("a", "Damage"), sep = 1) %>% 
   dplyr::select(-3) %>% 
   mutate(Damage = as.numeric(Damage)) %>% 
   relocate(1,5,6) %>%
-  dplyr::select(-1) %>% 
   mutate(Month = case_when(Month %in% c("December","January","February") ~ "Winter",
                    Month %in% c("March","April","May") ~ "Spring",
                    Month %in% c("June","July","August") ~ "Summer",
                    Month %in% c("September","October","November") ~ "Fall")) %>% 
-  rename(Year = Season)
+  rename(Year = Season) %>% 
+  mutate(HurricanID = toupper(HurricanID))
 
+name_1 = unique(hurrican$id)
+res_1 <- read_csv("./res_1.csv") %>% 
+  mutate(id = name_1) %>% 
+  dplyr::select(c(-1,-2))
+colnames(res_1) = c("rmse", "beta_0", "beta_1", "beta_2", "beta_3", "beta_4", "HurricanID")
+  
+
+combine_res = left_join(res_1, q6_df, by = "HurricanID") %>% 
+  dplyr::select(-1, -7) %>% 
+  na.omit() %>% 
+  relocate(6:10)
 ```
 
 ```{r}
 ## Damage Data
-q6_df_1 = q6_df %>% 
+q6_df_1 = combine_res %>% 
   relocate(4) %>%
   dplyr::select(-5) %>% 
-  mutate_each_(funs(scale(.)), c(4:12))
+  mutate_each_(funs(scale(.)), c(4:17))
 
 x_dam <- model.matrix(Damage ~., q6_df_1)[,-1]
 y_dam <- q6_df_1$Damage
@@ -37,7 +77,7 @@ set.seed(100)
 lasso_dam_fit <- train(x = x_dam, y = y_dam,
                        method = "glmnet",
                        tuneGrid = expand.grid(alpha = 1,
-                                              lambda = exp(seq(2, -2, length = 100))),
+                                              lambda = exp(seq(10, 0, length = 100))),
                        trControl = trainControl(method = "LOOCV"))
 
 ggplot(lasso_dam_fit, highlight = T)
@@ -54,7 +94,7 @@ summary(dam_fit)
 
 ```{r}
 ## Death Data
-q6_df_2 = q6_df %>% 
+q6_df_2 = combine_res %>% 
   relocate(5) %>%
   dplyr::select(-5)
 
