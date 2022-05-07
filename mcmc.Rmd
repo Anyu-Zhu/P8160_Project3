@@ -206,7 +206,7 @@ ini.bsig = diag(.5,5,5)
 set.seed(666)
 res = NULL
 ids = unique(hurrican$id)
-  for (i in 560:562){
+  for (i in 560:691){
     hurr_i <- hurrican %>% filter(id == ids[i])
     trRow <- createDataPartition(hurr_i$wind_kt_2, p = 0.8, list = F)
     ## Train
@@ -241,7 +241,7 @@ ids = unique(hurrican$id)
   }
 
 res
-## write.csv(res, file = "res560-691.csv")
+write.csv(res, file = "res560-691.csv")
 ```
 
 ```{r}
@@ -252,7 +252,9 @@ dat = dat %>%
   drop_na()
 
 ## qq plot to see whether lm and mcmc follow the same trend
-qqplot(dat$V5, dat$latitude_d, xlab = "mcmc", ylab = "lm", main = "Q-Q Plot")
+qqplot(dat$V4, dat$wind_kt, xlab = "mcmc", ylab = "lm", main = "Q-Q Plot")
+
+colMeans(t(matrix(unlist(rest_test$mu_est), 5, 5000))[4000:5000, ])
 ```
 
 
