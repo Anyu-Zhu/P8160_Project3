@@ -11,37 +11,51 @@ For each hurricane $i$ and $k_{i}$'s time points:
 
 $Y_{i}(t+6)=\beta_{0 i}+\beta_{i j} Y_{i}(t)+\beta_{x} \Delta_{i 1}(t)+\beta_{i i} \Delta_{i 2}(t)+\beta_{4 i} \Delta_{i 3}(t)+\varepsilon_{i}(t)$
 
-$Y_{i}(t+b)=x_{i}(t) \cdot \beta_{i}+\varepsilon_{i}(t), where \beta_{i}=\left(\beta_{0 i}, \beta_{1 i}, \ldots, \beta_{4 i}\right) \sim N_{5}(\mu, \Sigma), \varepsilon_{i}(t) \sim N\left(0, \sigma^{2}\right),$
+$Y_{i}(t+6)=x_{i}(t) \cdot \beta_{i}+\varepsilon_{i}(t), where \beta_{i}=\left(\beta_{0 i}, \beta_{1 i}, \ldots, \beta_{4 i}\right) \sim N_{5}(\mu, \Sigma), \varepsilon_{i}(t) \sim N\left(0, \sigma^{2}\right)$
 
-$$ Y_{i} \mid X_{i} \sim N_{k_{i}}\left(x_{i} \beta_{i}, \nabla^{2} I_{k_{i}}\right), f\left(y_{i} \mid \beta_{i}, \nabla^{2}\right)=\left[(2 \pi)^{k_{i}} \cdot \operatorname{det}\left(\sigma^{2} I_{k_{i}}\right)\right]^{-\frac{1}{2}} \cdot \exp \left\{-\frac{1}{2}\left(y_{i}-x_{i} \beta_{i}\right)^{\top} \cdot\left(\sigma^{2} I_{k_{i}}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right\}$$
+$Y_{i}\mid X_{i} \sim N_{k_{i}}\left(x_{i} \beta_{i}, \sigma^{2} I_{k_{i}}\right)$
 
-Likelihood:
+$f\left(y_{i} \mid \beta_{i}, \nabla^{2}\right)=\left[(2 \pi)^{k_{i}} \cdot \operatorname{det}\left(\sigma^{2} I_{k_{i}}\right)\right]^{-\frac{1}{2}} \cdot \exp \left\{-\frac{1}{2}\left(y_{i}-x_{i} \beta_{i}\right)^{\top} \cdot\left(\sigma^{2} I_{k_{i}}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right\}$
+
+Thus we can derive the Likelihood:
 $$
 \begin{aligned}
-g\left(y \mid B, \sigma^{2}\right)&=\prod_{i=1}^{n} f\left(y_{i} \mid \beta_{i}, \sigma^{2}\right) \\
+f\left(y \mid B, \sigma^{2}\right)&=\prod_{i=1}^{n} f\left(y_{i} \mid \beta_{i}, \sigma^{2}\right) \\
 &=\prod_{i=1}^{n}\left(\left[(2 \pi)^{k_{i}} \cdot \operatorname{det}\left(\sigma^{2} I_{k i}\right)\right]^{-\frac{1}{2}} \cdot \exp \left\{-\frac{1}{2}\left(y_{i}-x_{i} \beta_{i}\right)^{\top} \cdot\left(\sigma^{2} I_{k_{i}}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right\}\right)\end{aligned}
 $$
 
-Prior:
+We have the Priors below:
 
-$\beta_{i}=\left(\beta_{0 i}, \beta_{1 i}, \ldots, \beta_{4 i}\right) \sim N_{5}(\mu, \Sigma), \mu:(5 \times 1), \Sigma:(5 \times 5)$ 
+$\beta_{i}=\left(\beta_{0 i}, \beta_{1 i}, \ldots, \beta_{4 i}\right) \sim N_{5}(\mu, \Sigma)$ 
 
-$B=\left(\beta_{1}^{\top}, \beta_{2}^{\top}, \ldots, \beta_{n}^{\top}\right)^{\top}$, assume $\beta_{1}, \beta_{2}, \ldots, \beta_{n}$ are independent, $B \cdot(n \times 5)$
+$B=\left(\beta_{1}^{\top}, \beta_{2}^{\top}, \ldots, \beta_{n}^{\top}\right)^{\top}$, assume $\beta_{1}, \beta_{2}, \ldots, \beta_{n}$ are independent,
 
 $\pi(B | \mu, \Sigma)=\prod_{i=1}^{n} f\left(\beta_{i}\right)=(2 \pi)^{-5 n / 2} \cdot \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \sum_{i}\left[\left(\beta_{i}-\mu\right)^{\top} \cdot(\Sigma)^{-1} \cdot\left(\beta_{i}-\mu\right)\right]\right\}$
 
 $\pi\left(\sigma^{2}\right) \propto \frac{1}{\sigma^{2}}, \pi(\mu) \propto 1, \pi\left(\Sigma^{-1}\right) \propto|\Sigma|^{-(d+1)} \cdot \exp \left(-\frac{1}{2} \Sigma^{-1}\right)$
 
-Posterior: 
+We can then derive the Posterior: 
+
 $$g\left(B, \sigma^{2} \mid y\right) \propto g\left(y \mid B, \sigma^{2}\right) \cdot \pi(B \mid \mu, \Sigma) \cdot \pi\left(\sigma^{2}\right) \cdot \pi(\mu) \cdot \pi\left(\Sigma^{-1}\right)$$
 
 $$
-\begin{aligned} \pi\left(\sigma^{2} \mid \cdot\right) & \propto \prod_{i=1}^{n} \operatorname{det}\left(\sigma^{2} I_{k_{i}}\right)^{-\frac{1}{2}} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \sigma^{-2} \\=&\left(\sigma^{2}\right)^{-\frac{1}{2} \Sigma_{i} k_{i}} \cdot \exp \left\{-\frac{1}{2 \sigma^{2}} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top} \cdot\left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \sigma^{-2} \\=&\left(\sigma^{2}\right)^{-1-\frac{1}{2} \Sigma_{i} k_{i}} \cdot \exp \left\{-\frac{1}{2 \sigma^{2}} \Sigma_{i} \Sigma_{t i}\left(y_{i, t}-x_{i, t} \cdot \beta_{i}\right)^{2}\right\}, \text { assume } w=\left(\sigma^{2}\right)^{-1} \\=& w^{\left(1+\frac{1}{2} \Sigma_{i} k_{i}\right)} \cdot \exp \left\{-w \cdot \frac{1}{2} \cdot \Sigma_{i} \Sigma_{t i}\left(y_{i, t}-x_{i, t} \cdot \beta_{i}\right)^{2}\right\} \\ \therefore w & \sim \text { Gamma} \left( \frac{1}{2} \Sigma_{i} k_{i}+2, \frac{1}{2} \Sigma_{i} \Sigma_{t_{i}}\left(y_{i, t}-x_{i, t} \cdot \beta_{i}\right)^{2}\right) \end{aligned}
+\begin{aligned}
+\pi\left(\sigma^{2} \mid \cdot\right) & \propto \prod_{i=1}^{n} \operatorname{det}\left(\sigma^{2} I_{k_{i}}\right)^{-\frac{1}{2}} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \sigma^{-2} \\
+&=\left(\sigma^{2}\right)^{-\frac{1}{2} \Sigma_{i} k_{i}} \cdot \exp \left\{-\frac{1}{2 \sigma^{2}} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top} \cdot\left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \sigma^{-2} \\
+&=\left(\sigma^{2}\right)^{-1-\frac{1}{2} \Sigma_{i} k_{i}} \cdot \exp \left\{-\frac{1}{2 \sigma^{2}} \Sigma_{i} \Sigma_{t i}\left(y_{i, t}-x_{i, t} \cdot \beta_{i}\right)^{2}\right\}, \text { assume } w=\left(\sigma^{2}\right)^{-1} \\
+&=w\left(1+\frac{1}{2} \Sigma_{i} k_{i}\right) \cdot \exp \left\{-w \cdot \frac{1}{2} \cdot \Sigma_{i} \Sigma_{t i}\left(y_{i, t}-x_{i, t} \cdot \beta_{i}\right)^{2}\right\} \\
+\end{aligned}
 $$
+Therefore, $w \sim \operatorname{Gamma}\left(\frac{1}{2} \Sigma_{i} k_{i}+2, \frac{1}{2} \Sigma_{i} \Sigma_{t_{i}}\left(y_{i, t}-x_{i, t} \cdot \beta_{i}\right)^{2}\right)$.
 
 $$
-\begin{aligned} \pi\left(\Sigma^{-1} \mid .\right) & \propto \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right\} \cdot \operatorname{det}(\Sigma)^{-(d+1)} \cdot \exp \left\{-\frac{1}{2} \Sigma^{-1}\right\} \\ &=\operatorname{det}(\Sigma)^{-(n \mid 2+d+1)} \cdot \exp \left\{-\frac{1}{2}\left[\Sigma^{-1}+\Sigma_{i}\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right]\right\} \\ & \propto \operatorname{det}(\Sigma)^{-(n+2 d+2) / 2} \cdot \exp \left\{-\frac{1}{2} \operatorname{tr}\left[\Sigma^{-1} \cdot\left(I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right]\right\}\right.\\ & \propto \operatorname{det}(\Sigma)^{-(n+d+1+d+1) / 2} \cdot \exp \left\{-\frac{1}{2} \operatorname{tr}\left[\Sigma^{-1}\left(I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right]\right\}\right.\\ & \therefore \Sigma^{-1} \sim \text { inverse Wishart }\left(n+d+1, I+\Sigma_{i}\left(\beta_{i}-\mu\right)^{\top}\left(\beta_{i}-\mu\right)\right) \end{aligned}
+\begin{aligned} 
+\pi(\Sigma^{-1}) & \propto \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right\} \cdot \operatorname{det}(\Sigma)^{-(d+1)} \cdot \exp \left\{-\frac{1}{2} \Sigma^{-1}\right\} \\ &=\operatorname{det}(\Sigma)^{-(n \mid 2+d+1)} \cdot \exp \left\{-\frac{1}{2}\left[\Sigma^{-1}+\Sigma_{i}\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right]\right\} \\ 
+& \propto \operatorname{det}(\Sigma)^{-(n+2 d+2) / 2} \cdot \exp \left\{-\frac{1}{2} \operatorname{tr}\left[\Sigma^{-1}\cdot\left(I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right]\right\}\right.\\ 
+& \propto \operatorname{det}(\Sigma)^{-(n+2 d+2) / 2} \cdot \exp \left\{-\frac{1}{2} \operatorname{tr}\left[\Sigma^{-1} \cdot\left(I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right]\right\}\right.
+\end{aligned}
 $$
+Thus $\Sigma^{-1} \sim \text { Wishart }\left(n + 3d+3,I+\Sigma_{i}\left(\beta_{i}-\mu\right)^{\top}\left(\beta_{i}-\mu\right)\right)$
 
 
 $$
@@ -50,8 +64,25 @@ $$
 &=\exp \left\{-\frac{1}{2} \Sigma_{i}\left(\beta_{i}^{\top} \Sigma^{-1} \beta_{i}+\mu^{\top} \Sigma^{-1} \mu-2 \beta_{i}^{\top} \Sigma^{-1} \mu\right)\right\} \\
 &=\exp \left\{-\frac{1}{2}\left(\Sigma_{i} \beta_{i}^{\top} \Sigma^{-1} \beta_{i}+\mu^{\top} n \Sigma^{-1} \mu-2 \Sigma_{i} \beta_{i}^{\top} \Sigma^{-1} \mu\right)\right\} \\
 &=\exp \left\{-\frac{1}{2}\left(\mu^{\top} n \Sigma^{-1} \mu-2 \Sigma_{i} \beta_{i}^{\top} \Sigma^{-1} \mu+\Sigma_{i}-\beta_{i}^{\top} \Sigma^{-1} \beta_{i}\right)\right\} \\
-&=\exp \left\{-\frac{1}{2}(\mu^{\top} \underbrace{n}_{M} \Sigma^{-1} \mu-2 \mu^{\top} \underbrace{\Sigma_{i} \Sigma^{-1} \beta_{i}}_{N}+\Sigma_{i} \beta_{i}^{\top} \Sigma^{-1} \beta_{i})\right\} \\
+&=\exp \left\{-\frac{1}{2}(\mu^{\top} \underbrace{n\Sigma^{-1}}_{M}  \mu-2 \mu^{\top} \underbrace{\Sigma_{i} \Sigma^{-1} \beta_{i}}_{N}+\Sigma_{i} \beta_{i}^{\top} \Sigma^{-1} \beta_{i})\right\} \\
 &=\exp \left\{-\frac{1}{2}\left[\left(\mu-M^{-1} N\right)^{\top} M\left(\mu-M^{-1} N\right)\right]\right.
 \end{aligned}
 $$
+
+$$
+\begin{aligned}
+&\pi(B) \propto \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(\beta_{i}-\mu\right)^{\top} \cdot(\Sigma)^{-1} \cdot\left(\beta_{i}-\mu\right)\right]\right\} \\
+&=\exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)+\left(\beta_{i}-\mu\right)^{\top} \cdot \Sigma^{-1}\left(\beta_{i}-\mu\right)\right]\right\} \\
+&=\exp \left\{y_{i}^{\top} \sigma^{-2} I_{k i} y_{i}^{\top}+\beta_{i}^{\top} x_{i}^{\top} \sigma^{-2} I_{k_{i}} x_{i} \beta_{i}-2 y_{i}^{\top} \sigma^{-2} I_{k i} x_{i} \beta_{i}+\beta_{i}^{\top} \Sigma^{-1} \beta_{i}+\mu^{\top} \Sigma^{-1} \mu-2 \mu^{\top} \Sigma^{-1} \beta_{i} \right\} \\
+&=\exp \left\{y_{i}^{\top} \sigma^{-2} I_{k i} y_{i}+\mu^{\top} {\Sigma}^{-1} \mu+\beta_{i}^{\top}\left({\Sigma}^{-1}+x_{i}^{\top} {\sigma}^{-2} I_{k i} x_{i}\right) \beta_{i}-2\left(y_{i}^{\top} \sigma^{-2} I_{k i} x_{i}+\mu^{\top} \Sigma^{-1}\right) \beta_{i}\right\}
+\end{aligned}
+$$
+
+We can define the following terms:
+$$R=y_{i}^{\top} \sigma^{-2} I_{k_{i}} y_{i}+\mu^{\top} \Sigma^{-1} \mu$$
+$$V=\Sigma^{-1}+x_{i}^{\top} \sigma^{-2} I_{k i} x_{i}$$
+$$M=\sigma^{-2} x_{i}^{\top} y_{i}+\Sigma^{-1} \mu$$
+
+Thus, 
+$\pi\left(B \mid \cdots\right) \propto \left(\beta_{i} -V^{-1} M\right)^{\top} \cdot V\cdot \left(\beta_{i}-V^{-1} M\right) \sim N\left(V^{-1} M, {V}^{-1}\right)$
 
