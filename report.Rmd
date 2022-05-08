@@ -122,7 +122,43 @@ $$Death \sim \beta_{4} + MonthSummer + Maxspeed + Maxpressure + Meanpressure + H
 
 
 # Results
-## Gibbs Sampling
+## MCMC-Gibbs Sampling
+The initial values for $\mu$, $\Sigma^{-1}$ and $\sigma^{2}$ we set are (50,0,0,0,0), 0.5 and `diag(0.5, 0.5, 0.5)` respectively. In the case of Gibbs results, we set 10000 iterations and record the $\beta_{i,j}^n$ in each iteration with a linear model (from the least square method) to demonstrate how similar the coefficients are for each hurricane’s train data and $\mu^n$.
+ 
+To minimize the variance generated randomly by Gibbs sampling and avoid the non convergent situation at the beginning of the iteration, we only take the coefficients value from 8000 to 10000 times where we take the mean value for each coefficients $\beta_{i,j}$ as the final results. To evaluate how well the estimated Bayesian model tracks the individual hurricanes, we divided the observations within each hurricane ID by 8:2 randomly to create a training and testing set. Then we calculated RMSE for each different hurricane.
+
+For our final results obtained from Gibbs sampling, you could jump to our [github](https://github.com/hw2849/p8160_group_project_3/blob/master/res_1_4th_edition.csv)(Column2: RMSE for the test dataset, Column3-7: Mean coefficients $\beta_{i,j}$ for each hurricane by Gibbs sampling, Column8-12: coefficients $\beta_{i,j}$ for each hurricane by lm() function, Column13-17: Mean $\mu$ for $B$) 
+
+In order to further elucidate the results from our Gibbs methods, we take `ABLE.1950` as an example. Firstly, we trace the Gibbs step for only extracting the $\beta_{1,j}^n$ from $B^n$ by plotting the value. 
+
+<center>
+![](Figure/figure_change.png){}
+</center>
+
+Then to look deeply into how the coefficients change with the increasing of iteration times, we also plot the autocorrelation plot(ACF) and time series plot (TS) where we could tell that the correlation for coefficient values between zero and blue line are not statistically significant. 
+
+<center>
+![](Figure/ACF.png){}
+</center>
+<center>
+![](Figure/TS.png){}
+</center>
+
+For the case of `ABLE.1950`, the RMSE for the remaining 20% test dataset is 4.25 and the comparison of  coefficients $\beta_{1,j}$ is in the table below.
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+df = tibble(
+  model = c("Gibbs sampling", "Weibull"),
+  Intercept = c(7.601, 8.833),
+  Beta1 = c(0.919, 0.912),
+  Beta2 = c(-0.788, -1.394),
+  Beta3 = c(-1.644, -2.013),
+  Beta4 = c(0.411, 2.983)
+)
+knitr::kable(df, caption = "Compare the Coefficients from Gibbs Sampling and lm function")
+```
+
 
 ## Task 5
 
