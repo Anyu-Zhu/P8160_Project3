@@ -88,7 +88,7 @@ sigma_sq <- function(B){
     res = rbind(res, ssr)
   }
   
-  alpha = sum_ki/2 + 2
+  alpha = sum_ki/2
   beta = res/2
   sigma = rinvgamma(1, alpha, beta)
   return(sigma)
