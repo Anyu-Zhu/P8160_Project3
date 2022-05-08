@@ -56,21 +56,22 @@ $$
 \pi(\mu \mid \cdot) & \propto \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right]\right\} \\
 &=\exp \left\{-\frac{1}{2} \Sigma_{i}\left(\beta_{i}^{\top} \Sigma^{-1} \beta_{i}+\mu^{\top} \Sigma^{-1} \mu-2 \beta_{i}^{\top} \Sigma^{-1} \mu\right)\right\} \\
 &=\exp \left\{-\frac{1}{2}\left(\Sigma_{i} \beta_{i}^{\top} \Sigma^{-1} \beta_{i}+\mu^{\top} n \Sigma^{-1} \mu-2 \Sigma_{i} \beta_{i}^{\top} \Sigma^{-1} \mu\right)\right\} \\
-&=\exp \left\{-\frac{1}{2}\left(\mu^{\top} n \Sigma^{-1} \mu-2 \Sigma_{i} \beta_{i}^{\top} \Sigma^{-1} \mu+\Sigma_{i}-\beta_{i}^{\top} \Sigma^{-1} \beta_{i}\right)\right\} \\
+&=\exp \left\{-\frac{1}{2}\left(\mu^{\top} n \Sigma^{-1} \mu-2 \Sigma_{i} \beta_{i}^{\top} \Sigma^{-1} \mu+\Sigma_{i}\beta_{i}^{\top} \Sigma^{-1} \beta_{i}\right)\right\} \\
 &=\exp \left\{-\frac{1}{2}(\mu^{\top} \underbrace{n\Sigma^{-1}}_{M}  \mu-2 \mu^{\top} \underbrace{\Sigma_{i} \Sigma^{-1} \beta_{i}}_{N}+\Sigma_{i} \beta_{i}^{\top} \Sigma^{-1} \beta_{i})\right\} \\
 &=\exp \left\{-\frac{1}{2}\left[\left(\mu-M^{-1} N\right)^{\top} M\left(\mu-M^{-1} N\right)\right]\right.
 \end{aligned}
 $$
-Therefore, $\mu \sim \text{MVN}()$.
+Therefore, $\mu \sim MVN\left(M^{-1} N, {M}^{-1}\right)$.
 
 $$
 \begin{aligned}
-&\pi(B) \propto \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(\beta_{i}-\mu\right)^{\top} \cdot(\Sigma)^{-1} \cdot\left(\beta_{i}-\mu\right)\right]\right\} \\
+&\pi(B \mid \cdot) \propto \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(\beta_{i}-\mu\right)^{\top} \cdot(\Sigma)^{-1} \cdot\left(\beta_{i}-\mu\right)\right]\right\} \\
 &=\exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)+\left(\beta_{i}-\mu\right)^{\top} \cdot \Sigma^{-1}\left(\beta_{i}-\mu\right)\right]\right\} \\
-&=\exp \left\{y_{i}^{\top} \sigma^{-2} I_{k i} y_{i}^{\top}+\beta_{i}^{\top} x_{i}^{\top} \sigma^{-2} I_{k_{i}} x_{i} \beta_{i}-2 y_{i}^{\top} \sigma^{-2} I_{k i} x_{i} \beta_{i}+\beta_{i}^{\top} \Sigma^{-1} \beta_{i}+\mu^{\top} \Sigma^{-1} \mu-2 \mu^{\top} \Sigma^{-1} \beta_{i} \right\} \\
-&=\exp \left\{y_{i}^{\top} \sigma^{-2} I_{k i} y_{i}+\mu^{\top} {\Sigma}^{-1} \mu+\beta_{i}^{\top}\left({\Sigma}^{-1}+x_{i}^{\top} {\sigma}^{-2} I_{k i} x_{i}\right) \beta_{i}-2\left(y_{i}^{\top} \sigma^{-2} I_{k i} x_{i}+\mu^{\top} \Sigma^{-1}\right) \beta_{i}\right\}
+&=\exp \left\{ -\frac{1}{2} \Sigma_{i}[ y_{i}^{\top} \sigma^{-2} I_{k i} y_{i}+\beta_{i}^{\top} x_{i}^{\top} \sigma^{-2} I_{k_{i}} x_{i} \beta_{i}-2 y_{i}^{\top} \sigma^{-2} I_{k i} x_{i} \beta_{i}+\beta_{i}^{\top} \Sigma^{-1} \beta_{i}+\mu^{\top} \Sigma^{-1} \mu-2 \mu^{\top} \Sigma^{-1} \beta_{i}] \right\} \\
+&=\exp \left\{-\frac{1}{2} \Sigma_{i}[y_{i}^{\top} \sigma^{-2} I_{k i} y_{i}+\mu^{\top} {\Sigma}^{-1} \mu+\beta_{i}^{\top}\left({\Sigma}^{-1}+x_{i}^{\top} {\sigma}^{-2} I_{k i} x_{i}\right) \beta_{i}-2\left(y_{i}^{\top} \sigma^{-2} I_{k i} x_{i}+\mu^{\top} \Sigma^{-1}\right) \beta_{i}] \right\}
 \end{aligned}
 $$
+
 
 We can define the following terms:
 $$R=y_{i}^{\top} \sigma^{-2} I_{k_{i}} y_{i}+\mu^{\top} \Sigma^{-1} \mu$$
@@ -78,5 +79,5 @@ $$V=\Sigma^{-1}+x_{i}^{\top} \sigma^{-2} I_{k i} x_{i}$$
 $$M=\sigma^{-2} x_{i}^{\top} y_{i}+\Sigma^{-1} \mu$$
 
 Thus, 
-$\pi\left(B \mid \cdots\right) \propto \left(\beta_{i} -V^{-1} M\right)^{\top} \cdot V\cdot \left(\beta_{i}-V^{-1} M\right) \sim N\left(V^{-1} M, {V}^{-1}\right)$
+$\pi (B \mid \cdot) \propto \left(\beta_{i} -V^{-1} M\right)^{\top} V\left(\beta_{i}-V^{-1} M\right) \sim MVN\left(V^{-1} M, {V}^{-1}\right)$
 
