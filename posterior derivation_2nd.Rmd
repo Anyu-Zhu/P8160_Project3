@@ -1,5 +1,5 @@
 ---
-title: "Posterior Derivation"
+title: "Statistical Method"
 output: pdf_document
 ---
 
@@ -7,54 +7,53 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Likelihood
+
 For each hurricane $i$ and $k_{i}$'s time points, we have the following Bayesian model: $$Y_{i}(t+6)=\beta_{0i}+\beta_{1i} Y_{i}(t)+\beta_{2i} \Delta_{i1}(t)+\beta_{3i} \Delta_{i2}(t)+\beta_{4 i} \Delta_{i 3}(t)+\varepsilon_{i}(t),$$ where $Y_{i}(t)$ is the wind speed at time $t$, $\Delta_{i1}$, $\Delta_{i2}$, and $\Delta_{i3}$ are the changes of latitude, longitude, and the wind speed between time point $t$ and $t - 6$, respectively. $\varepsilon_{i}(t)$ follows a normal distributions with mean zero and variance $\sigma^2$. The above Bayesian model can be simplified as: $$Y_{i}(t+6) = x_{i}(t) + \varepsilon_{i}(t),$$ where $\beta_{i} = (\beta_{0i}, \beta_{1i}, ...,\beta_{4i}) \sim N\left(0, \sigma^2\right).$ Based on the property of the multivariate linear regression model, for each hurricane $i$, we have: $$Y_{i}\mid X_{i} \sim N_{k_{i}}\left(x_{i} \beta_{i}, \sigma^{2} I_{k_{i}}\right),$$ where $I_{k_{i}}$ is an identity matrix with $k_{i}$ dimensions.
 
-Considering the following distribution of each hurricane $i$: $$f\left(y_{i} \mid \beta_{i}, \sigma^{2}\right)=\left[(2 \pi)^{k_{i}} \cdot \operatorname{det}\left(\sigma^{2} I_{k_{i}}\right)\right]^{-\frac{1}{2}} \cdot \exp \left\{-\frac{1}{2}\left(y_{i}-x_{i} \beta_{i}\right)^{\top} \cdot\left(\sigma^{2} I_{k_{i}}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right\}$$.
+Thus, we can consider the following distribution of each hurricane $i$: $$f\left(y_{i} \mid \beta_{i}, \sigma^{2}\right)=\left[(2 \pi)^{k_{i}} \cdot \operatorname{det}\left(\sigma^{2} I_{k_{i}}\right)\right]^{-\frac{1}{2}} \cdot \exp \left\{-\frac{1}{2}\left(y_{i}-x_{i} \beta_{i}\right)^{\top} \left(\sigma^{2} I_{k_{i}}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right\}$$.
 
-Thus we can derive the following likelihood function:
+From above, we derive the following likelihood function:
 $$
 \begin{aligned}
 f\left(y \mid B, \sigma^{2}\right)&=\prod_{i=1}^{n} f\left(y_{i} \mid \beta_{i}, \sigma^{2}\right) \\
-&=\prod_{i=1}^{n}\left(\left[(2 \pi)^{k_{i}} \cdot \operatorname{det}\left(\sigma^{2} I_{k i}\right)\right]^{-\frac{1}{2}} \cdot \exp \left\{-\frac{1}{2}\left(y_{i}-x_{i} \beta_{i}\right)^{\top} \cdot\left(\sigma^{2} I_{k_{i}}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right\}\right)\end{aligned}
+&=\prod_{i=1}^{n}\left(\left[(2 \pi)^{k_{i}} \cdot \operatorname{det}\left(\sigma^{2} I_{k i}\right)\right]^{-\frac{1}{2}} \cdot \exp \left\{-\frac{1}{2}\left(y_{i}-x_{i} \beta_{i}\right)^{\top} \left(\sigma^{2} I_{k_{i}}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right\}\right)\end{aligned}
 $$
 
-We have the Priors below:
+## Prior distributions
 
-$\beta_{i}=\left(\beta_{0 i}, \beta_{1 i}, \ldots, \beta_{4 i}\right) \sim N_{5}(\mu, \Sigma)$ 
+We assume the following non-informative prior distributions:
+$$\beta_{i}=\left(\beta_{0 i}, \beta_{1 i}, \ldots, \beta_{4 i}\right) \sim N_{5}(\mu, \Sigma),$$ where $B=\left(\beta_{1}^{\top}, \beta_{2}^{\top}, \ldots, \beta_{n}^{\top}\right)^{\top}$ and $n$ is the number of hurricanes. So,
+$$\pi(B | \mu, \Sigma^{-1})=\prod_{i=1}^{n} f\left(\beta_{i}\right) \propto \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \sum_{i}\left[\left(\beta_{i}-\mu\right)^{\top} (\Sigma)^{-1} \left(\beta_{i}-\mu\right)\right]\right\}.$$ Also, $\pi\left(\sigma^{2}\right) \propto \frac{1}{\sigma^{2}}; \hspace{.2cm} \pi(\mu) \propto 1; \hspace{.2cm} \pi\left(\Sigma^{-1}\right) \propto|\Sigma|^{-(d+1)} \cdot \exp \left(-\frac{1}{2} \Sigma^{-1}\right).$
 
-$B=\left(\beta_{1}^{\top}, \beta_{2}^{\top}, \ldots, \beta_{n}^{\top}\right)^{\top}$, assume $\beta_{1}, \beta_{2}, \ldots, \beta_{n}$ are independent,
+## Conditional posteriors
 
-$\pi(B | \mu, \Sigma)=\prod_{i=1}^{n} f\left(\beta_{i}\right)=(2 \pi)^{-5 n / 2} \cdot \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \sum_{i}\left[\left(\beta_{i}-\mu\right)^{\top} \cdot(\Sigma)^{-1} \cdot\left(\beta_{i}-\mu\right)\right]\right\}$
+The posterior distribution is the product of the likelihood and the prior: 
 
-$\pi\left(\sigma^{2}\right) \propto \frac{1}{\sigma^{2}}, \pi(\mu) \propto 1, \pi\left(\Sigma^{-1}\right) \propto|\Sigma|^{-(d+1)} \cdot \exp \left(-\frac{1}{2} \Sigma^{-1}\right)$
-
-We can then derive the Posterior: 
-
-$$g\left(B, \sigma^{2} \mid y\right) \propto g\left(y \mid B, \sigma^{2}\right) \cdot \pi(B \mid \mu, \Sigma) \cdot \pi\left(\sigma^{2}\right) \cdot \pi(\mu) \cdot \pi\left(\Sigma^{-1}\right)$$
+$$g\left(B, \sigma^{2}, \mu, \Sigma^{-1} \mid y\right) \propto f\left(y \mid B, \sigma^{2}\right) \cdot \pi(B \mid \mu, \Sigma^{-1}) \cdot \pi\left(\sigma^{2}\right) \cdot \pi(\mu) \cdot \pi\left(\Sigma^{-1}\right),$$ so we have:
 
 $$
 \begin{aligned}
 \pi\left(\sigma^{2} \mid \cdot\right) & \propto \prod_{i=1}^{n} \operatorname{det}\left(\sigma^{2} I_{k_{i}}\right)^{-\frac{1}{2}} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \sigma^{-2} \\
-&=\left(\sigma^{2}\right)^{-\frac{1}{2} \Sigma_{i} k_{i}} \cdot \exp \left\{-\frac{1}{2 \sigma^{2}} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top} \cdot\left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \sigma^{-2} \\
-&=\left(\sigma^{2}\right)^{-1-\frac{1}{2} \Sigma_{i} k_{i}} \cdot \exp \left\{-\frac{1}{2 \sigma^{2}} \Sigma_{i} \Sigma_{t i}\left(y_{i, t}-x_{i, t} \cdot \beta_{i}\right)^{2}\right\}, \text { assume } w=\left(\sigma^{2}\right)^{-1} \\
-&=w\left(1+\frac{1}{2} \Sigma_{i} k_{i}\right) \cdot \exp \left\{-w \cdot \frac{1}{2} \cdot \Sigma_{i} \Sigma_{t i}\left(y_{i, t}-x_{i, t} \cdot \beta_{i}\right)^{2}\right\} \\
+&=\left(\sigma^{2}\right)^{-\frac{1}{2} \Sigma_{i} k_{i}} \cdot \exp \left\{-\frac{1}{2 \sigma^{2}} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top} \left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \sigma^{-2} \\
+&=\left(\sigma^{2}\right)^{-1-\frac{1}{2} \Sigma_{i} k_{i}} \cdot \exp \left\{-\frac{1}{2 \sigma^{2}} \Sigma_{i} \Sigma_{t i}\left(y_{i, t}-x_{i, t} \beta_{i}\right)^{2}\right\}
 \end{aligned}
 $$
-Therefore, $w \sim \operatorname{Gamma}\left(\frac{1}{2} \Sigma_{i} k_{i}+2, \frac{1}{2} \Sigma_{i} \Sigma_{t_{i}}\left(y_{i, t}-x_{i, t} \cdot \beta_{i}\right)^{2}\right)$.
+Therefore, $\sigma^2 \sim \text{Inverse Gamma}\left(\frac{1}{2} \Sigma_{i} k_{i}, \frac{1}{2} \Sigma_{i} \Sigma_{t_{i}}\left(y_{i, t}-x_{i, t} \beta_{i}\right)^{2}\right)$.
 
 $$
 \begin{aligned} 
-\pi(\Sigma^{-1}) & \propto \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right\} \cdot \operatorname{det}(\Sigma)^{-(d+1)} \cdot \exp \left\{-\frac{1}{2} \Sigma^{-1}\right\} \\ &=\operatorname{det}(\Sigma)^{-(n \mid 2+d+1)} \cdot \exp \left\{-\frac{1}{2}\left[\Sigma^{-1}+\Sigma_{i}\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right]\right\} \\ 
-& \propto \operatorname{det}(\Sigma)^{-(n+2 d+2) / 2} \cdot \exp \left\{-\frac{1}{2} \operatorname{tr}\left[\Sigma^{-1}\cdot\left(I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right]\right\}\right.\\ 
-& \propto \operatorname{det}(\Sigma)^{-(n+2 d+2) / 2} \cdot \exp \left\{-\frac{1}{2} \operatorname{tr}\left[\Sigma^{-1} \cdot\left(I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right]\right\}\right.
+\pi(\Sigma^{-1} \mid \cdot) & \propto \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right\} \cdot \operatorname{det}(\Sigma)^{-(d+1)} \cdot \exp \left\{-\frac{1}{2} \Sigma^{-1}\right\} \\ &=\operatorname{det}(\Sigma)^{-(n/2+d+1)} \cdot \exp \left\{-\frac{1}{2}\left[\Sigma^{-1}+\Sigma_{i}\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right]\right\} \\ 
+& \propto \operatorname{det}(\Sigma^{-1})^{(n+2 d+2) / 2} \cdot \exp \left\{-\frac{1}{2} \operatorname{tr}\left[\Sigma^{-1}\cdot\left(I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right]\right\}\right.\\ 
+& \propto \operatorname{det}(\Sigma^{-1})^{(n+3d+3-d-1) / 2} \cdot \exp \left\{-\frac{1}{2} \operatorname{tr}\left[\Sigma^{-1} \cdot\left(I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right]\right\}\right.
 \end{aligned}
 $$
-Thus $\Sigma^{-1} \sim \text { Wishart }\left(n + 3d+3,I+\Sigma_{i}\left(\beta_{i}-\mu\right)^{\top}\left(\beta_{i}-\mu\right)\right)$
+Thus $\Sigma^{-1} \sim \text {Wishart}\left(n + 3d+3,[I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right]^{-1})$, that is: $$\Sigma \sim \text {Inverse Wishart}\left(n + 3d+3,I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right)$$
 
 
 $$
 \begin{aligned}
-\pi(\mu) & \propto \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right]\right\} \\
+\pi(\mu \mid \cdot) & \propto \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right]\right\} \\
 &=\exp \left\{-\frac{1}{2} \Sigma_{i}\left(\beta_{i}^{\top} \Sigma^{-1} \beta_{i}+\mu^{\top} \Sigma^{-1} \mu-2 \beta_{i}^{\top} \Sigma^{-1} \mu\right)\right\} \\
 &=\exp \left\{-\frac{1}{2}\left(\Sigma_{i} \beta_{i}^{\top} \Sigma^{-1} \beta_{i}+\mu^{\top} n \Sigma^{-1} \mu-2 \Sigma_{i} \beta_{i}^{\top} \Sigma^{-1} \mu\right)\right\} \\
 &=\exp \left\{-\frac{1}{2}\left(\mu^{\top} n \Sigma^{-1} \mu-2 \Sigma_{i} \beta_{i}^{\top} \Sigma^{-1} \mu+\Sigma_{i}-\beta_{i}^{\top} \Sigma^{-1} \beta_{i}\right)\right\} \\
@@ -62,6 +61,7 @@ $$
 &=\exp \left\{-\frac{1}{2}\left[\left(\mu-M^{-1} N\right)^{\top} M\left(\mu-M^{-1} N\right)\right]\right.
 \end{aligned}
 $$
+Therefore, $\mu \sim \text{MVN}()$.
 
 $$
 \begin{aligned}
