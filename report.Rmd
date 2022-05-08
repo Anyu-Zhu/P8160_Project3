@@ -9,8 +9,23 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Statistical Methods
+# Background and Objective
 
+Hurricanes are large rotating tropical storms with winds in excess of 119 kilometers per hour (74 mph). They usually form between June 1 and November 30 in the Atlantic Ocean but can develop in other oceans as well. They are known as typhoons in the western Pacific and cyclones in the Indian Ocean[1].
+
+When a hurricane approaches land, tremendous damage can occur to the nearby cities. Therefore, scientists continue to improve their ability to forecast hurricanes. The sooner they can access accurate information about a hurricane’s location and intensity, the better the chances to minimize the hurricane’s impacts. 
+
+In this project, we firstly built a Bayesian model based on the track data of 703 hurricanes in the North Atlantic area since 1950. A Markov Chain Monte Carlo (MCMC) algorithm was designed to generate the distribution of parameters. With the start time and type of each hurricane, the estimated coefficients from the Bayesian model were used to explore the seasonal differences and wind speed changes over years. Finally, we also explored the characteristics of hurricanes associated with the damage and deaths.
+
+
+# Data Descriptions and Preprocessing
+
+The first dataset hurrican703.csv collected the track data of 703 hurricanes in the North Atlantic area since 1950. For all the hurricanes, their locations (longitude \& latitude) and maximum wind speed were recorded every 6 hours. The variables include ID, Season, starting Month, Nature, time, Latitude, Longitude, Wind.kt. We created three new variables: changes of latitude and longitude, as well as the wind speed between the time t and $(t-6)$. For splitting the train and test set, we removed the hurricanes with observations less than 5. We built a regression model predicting wind speed based on this dataset. 
+
+The second dataset hurricanoutcome2.csv recorded the damages and death caused by 46 hurricanes in the U.S, and some features extracted from the hurricane records. To explore the characteristics related with death and damage, we combined the coefficients results from the first model with the second dataset by hurricane ID. 
+
+
+# Statistical Methods
 ## Posterior Distribution and Conditional Distributions 
 ### Likelihood
 
@@ -85,3 +100,30 @@ $$M=\sigma^{-2} x_{i}^{\top} y_{i}+\Sigma^{-1} \mu$$
 
 Thus, 
 $\pi (B \mid \cdot) \propto \left(\beta_{i} -V^{-1} M\right)^{\top} V\left(\beta_{i}-V^{-1} M\right) \sim MVN\left(V^{-1} M, {V}^{-1}\right)$
+
+
+## Gibbs Sampling
+Since directly generating the above jointly density is rather complicated, we can implement the gibbs sampler to sample each variable in turn. Based on the previous conditional distributions, we updated the four parameters including $B$, $\sigma^2$, $\sum$, and $\mu$ in sequence. Finally, we selected 10,000 iterations. Note that we ignored the first 8,000 iterations to ensure the stationary distribution of the Markov chain was reached.
+
+## Lasso and Poisson Regression Model
+
+
+# Results
+## Gibbs Sampling
+
+## Task 5
+
+## Task 6
+
+
+# Discussion and Limitations
+
+
+# Contributions
+
+
+# Reference
+
+
+# Appendix
+For codes please click [$\textcolor{blue}{here}$](https://github.com/hw2849/p8160_group_project_3.git)
