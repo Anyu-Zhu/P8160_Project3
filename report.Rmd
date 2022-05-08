@@ -6,29 +6,55 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE)
 ```
 
 # Objective
 
-In this project, we firstly built a Bayesian model based on the track data of 703 hurricanes in the North Atlantic area since 1950. A Markov Chain Monte Carlo (MCMC) algorithm was designed to generate the distribution of parameters. With the start time and type of each hurricane, the estimated coefficients from the Bayesian model were used to explore the seasonal differences and wind speed changes over years. Finally, we also explored the characteristics of hurricanes associated with the damage and deaths.
+In this project, we firstly built a Bayesian model based on the track data of 703 hurricanes in the North Atlantic area since 1950. A Markov Chain Monte Carlo (MCMC) algorithm was designed to generate the distribution of corresponding parameters. With the start time and type of each hurricane, the estimated coefficients from the Bayesian model were used to explore the seasonal differences and wind speed changes over years. Finally, we explored the characteristics of hurricanes associated with the damage and deaths.
 
 
 # Background
 
 Hurricanes are large rotating tropical storms with winds in excess of 119 kilometers per hour (74 mph). They usually form between June 1 and November 30 in the Atlantic Ocean but can develop in other oceans as well. They are known as typhoons in the western Pacific and cyclones in the Indian Ocean[1].
 
-When a hurricane approaches land, tremendous damage can occur to the nearby cities. Therefore, scientists continue to improve their ability to forecast hurricanes. The sooner they can access accurate information about a hurricane’s location and intensity, the better the chances to minimize the hurricane’s impacts. 
+When a hurricane approaches land, tremendous damage can occur to the nearby cities. Therefore, scientists continue to improve their ability to forecast hurricanes. The sooner they can access accurate information about a hurricane’s location and intensity, the better the chances to minimize the its impacts. 
 
 
-# Data Descriptions and Preprocessing
+# Data Description and Preprocessing
 
-The first data `hurrican703.csv` collected the track data of 703 hurricanes in the North Atlantic area since 1950. For all the hurricanes, their locations (longitude \& latitude) and maximum wind speed were recorded every 6 hours. The variables include `ID`, `Season`, `Month`, `Nature`, `time`, `Latitude`, `Longitude`, and `Wind.kt`. Main data processing steps for this data are listed as follows:  
+The first data `hurrican703.csv` collected the track data of 703 hurricanes in the North Atlantic area from 1950 to 2013. For all the hurricanes, their locations (longitude \& latitude) and maximum wind speed were recorded every 6 hours. The variables include `ID`, `Season`, `Month`, `Nature`, `time`, `Latitude`, `Longitude`, and `Wind.kt`. Main data processing steps for this data are listed as follows:  
 1) Created 3 new variables including the changes of latitude and longitude, as well as the wind speed between the time t and $t-6$;  
 2) Removed 9 hurricanes with observations less than 5 to ensure the data partition.  
 Finally, we have totally **691** hurricanes in the updated dataset.
 
-The second data `hurricanoutcome2.csv` recorded the damages and death caused by 46 hurricanes in the U.S, and some features extracted from the hurricane records. To explore the characteristics related with death and damage, we combined this data with the coefficients results obtained from the first model by the hurricane ID. For this dataset, we converted the start month for each hurricane into the variable `season`, which includes Spring, Summer, Fall, and Winter
+The second data `hurricanoutcome2.csv` recorded the damages and death caused by 46 hurricanes in the U.S, and some features extracted from the hurricane records. To explore the characteristics related with death and damage, we combined this data with the coefficients results obtained from the first model by the hurricane ID. For this dataset, we converted the start month for each hurricane into the variable `season`, which includes Spring, Summer, Fall, and Winter.
+
+
+# Exploratory Data Analysis
+
+To understand the distribution of wind speed across the North Atlantic area, the following plot shows the mean maximum wind speed within each knot defined by the longitude and latitude from the original data `hurrican703.csv`.
+
+```{r echo = FALSE}
+library(tidyverse)
+library(maps)
+theme_set(theme_bw() + theme(legend.position = "bottom"))
+
+dat <- read_csv("./hurrican703.csv")
+
+# --- plot 1 ---
+map <- ggplot(data = dat, aes(x = Longitude, y = Latitude)) + 
+  geom_polygon(data = map_data(map = 'world'), 
+               aes(x = long, y = lat, group = group))
+
+map +
+  stat_summary_2d(data = dat, aes(x = Longitude, y = Latitude, z = dat$Wind.kt), 
+                  fun = mean, binwidth = c(1, 1), show.legend = TRUE, alpha = .85) + 
+  guides(fill = guide_legend(title = "Maximum Wind Speed (in knot)")) +
+  ggtitle(paste0("Atlantic Windstorm mean wind speed"))
+```
 
 
 # Statistical Methods
@@ -122,43 +148,7 @@ $$Death \sim \beta_{4} + MonthSummer + Maxspeed + Maxpressure + Meanpressure + H
 
 
 # Results
-## MCMC-Gibbs Sampling
-The initial values for $\mu$, $\Sigma^{-1}$ and $\sigma^{2}$ we set are (50,0,0,0,0), 0.5 and `diag(0.5, 0.5, 0.5)` respectively. In the case of Gibbs results, we set 10000 iterations and record the $\beta_{i,j}^n$ in each iteration with a linear model (from the least square method) to demonstrate how similar the coefficients are for each hurricane’s train data and $\mu^n$.
- 
-To minimize the variance generated randomly by Gibbs sampling and avoid the non convergent situation at the beginning of the iteration, we only take the coefficients value from 8000 to 10000 times where we take the mean value for each coefficients $\beta_{i,j}$ as the final results. To evaluate how well the estimated Bayesian model tracks the individual hurricanes, we divided the observations within each hurricane ID by 8:2 randomly to create a training and testing set. Then we calculated RMSE for each different hurricane.
-
-For our final results obtained from Gibbs sampling, you could jump to our [github](https://github.com/hw2849/p8160_group_project_3/blob/master/res_1_4th_edition.csv)(Column2: RMSE for the test dataset, Column3-7: Mean coefficients $\beta_{i,j}$ for each hurricane by Gibbs sampling, Column8-12: coefficients $\beta_{i,j}$ for each hurricane by lm() function, Column13-17: Mean $\mu$ for $B$) 
-
-In order to further elucidate the results from our Gibbs methods, we take `ABLE.1950` as an example. Firstly, we trace the Gibbs step for only extracting the $\beta_{1,j}^n$ from $B^n$ by plotting the value. 
-
-<center>
-![](Figure/figure_change.png){}
-</center>
-
-Then to look deeply into how the coefficients change with the increasing of iteration times, we also plot the autocorrelation plot(ACF) and time series plot (TS) where we could tell that the correlation for coefficient values between zero and blue line are not statistically significant. 
-
-<center>
-![](Figure/ACF.png){}
-</center>
-<center>
-![](Figure/TS.png){}
-</center>
-
-For the case of `ABLE.1950`, the RMSE for the remaining 20% test dataset is 4.25 and the comparison of  coefficients $\beta_{1,j}$ is in the table below.
-
-```{r, echo = FALSE, message=FALSE, warning=FALSE}
-library(tidyverse)
-df = tibble(
-  model = c("Gibbs sampling", "Weibull"),
-  Intercept = c(7.601, 8.833),
-  Beta1 = c(0.919, 0.912),
-  Beta2 = c(-0.788, -1.394),
-  Beta3 = c(-1.644, -2.013),
-  Beta4 = c(0.411, 2.983)
-)
-knitr::kable(df, caption = "Compare the Coefficients from Gibbs Sampling and lm function")
-```
-
+## Gibbs Sampling
 
 ## Task 5
 
