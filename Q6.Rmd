@@ -4,6 +4,8 @@ output: pdf_document
 ---
 
 ```{r}
+library(tidyverse)
+library(lubridate)
 library(caret)
 ```
 
@@ -50,7 +52,7 @@ q6_df = read_csv("hurricanoutcome2.csv") %>%
   mutate(HurricanID = toupper(HurricanID))
 
 name_1 = unique(hurrican$id)
-res_1 <- read_csv("res_1_3rd_edition.csv") %>% 
+res_1 <- read_csv("res_1_4th_edition.csv") %>% 
   mutate(id = name_1) %>% 
   dplyr::select(c(2:7,18))
 colnames(res_1) = c("rmse", "beta_0", "beta_1", "beta_2", "beta_3", "beta_4", "HurricanID")
@@ -89,7 +91,7 @@ q6_df_dam = q6_df %>%
   dplyr::select(-5)
 
 ## Re-fit the lm model
-dam_fit = lm(Damage ~ Year + beta_0 + Maxspeed + Total.Pop + Percent.USA, data = q6_df_dam)
+dam_fit = lm(Damage ~ Year + beta_0 + Maxspeed + Total.Pop, data = q6_df_dam)
 summary(dam_fit)
 ```
 

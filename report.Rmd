@@ -9,25 +9,26 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Background and Objective
+# Objective
+
+In this project, we firstly built a Bayesian model based on the track data of 703 hurricanes in the North Atlantic area since 1950. A Markov Chain Monte Carlo (MCMC) algorithm was designed to generate the distribution of parameters. With the start time and type of each hurricane, the estimated coefficients from the Bayesian model were used to explore the seasonal differences and wind speed changes over years. Finally, we also explored the characteristics of hurricanes associated with the damage and deaths.
+
+
+# Background
 
 Hurricanes are large rotating tropical storms with winds in excess of 119 kilometers per hour (74 mph). They usually form between June 1 and November 30 in the Atlantic Ocean but can develop in other oceans as well. They are known as typhoons in the western Pacific and cyclones in the Indian Ocean[1].
 
 When a hurricane approaches land, tremendous damage can occur to the nearby cities. Therefore, scientists continue to improve their ability to forecast hurricanes. The sooner they can access accurate information about a hurricane’s location and intensity, the better the chances to minimize the hurricane’s impacts. 
 
-In this project, we firstly built a Bayesian model based on the track data of 703 hurricanes in the North Atlantic area since 1950. A Markov Chain Monte Carlo (MCMC) algorithm was designed to generate the distribution of parameters. With the start time and type of each hurricane, the estimated coefficients from the Bayesian model were used to explore the seasonal differences and wind speed changes over years. Finally, we also explored the characteristics of hurricanes associated with the damage and deaths.
-
 
 # Data Descriptions and Preprocessing
 
-The first data `hurrican703.csv` collected the track data of 703 hurricanes in the North Atlantic area since 1950. For all the hurricanes, their locations (longitude \& latitude) and maximum wind speed were recorded every 6 hours. The variables include `ID`, `Season`, `Month`, `Nature`, `time`, `Latitude`, `Longitude`, and `Wind.kt`.  
-
-Main data processing steps for this data are listed as follows:  
-1) Created 3 new variables including the changes of latitude and longitude, as well as the wind speed between the time t and $(t-6)$;  
+The first data `hurrican703.csv` collected the track data of 703 hurricanes in the North Atlantic area since 1950. For all the hurricanes, their locations (longitude \& latitude) and maximum wind speed were recorded every 6 hours. The variables include `ID`, `Season`, `Month`, `Nature`, `time`, `Latitude`, `Longitude`, and `Wind.kt`. Main data processing steps for this data are listed as follows:  
+1) Created 3 new variables including the changes of latitude and longitude, as well as the wind speed between the time t and $t-6$;  
 2) Removed 9 hurricanes with observations less than 5 to ensure the data partition.  
 Finally, we have totally **691** hurricanes in the updated dataset.
 
-The second data `hurricanoutcome2.csv` recorded the damages and death caused by 46 hurricanes in the U.S, and some features extracted from the hurricane records. To explore the characteristics related with death and damage, we combined this data with the coefficients results obtained from the first model by the hurricane ID. For this dataset, we converted the start month into `season` including Spring, Summer, Fall, and Winter
+The second data `hurricanoutcome2.csv` recorded the damages and death caused by 46 hurricanes in the U.S, and some features extracted from the hurricane records. To explore the characteristics related with death and damage, we combined this data with the coefficients results obtained from the first model by the hurricane ID. For this dataset, we converted the start month for each hurricane into the variable `season`, which includes Spring, Summer, Fall, and Winter
 
 
 # Statistical Methods
@@ -109,7 +110,15 @@ $\pi (B \mid \cdot) \propto \left(\beta_{i} -V^{-1} M\right)^{\top} V\left(\beta
 ## Gibbs Sampling
 Since directly generating the above jointly density is rather complicated, we can implement the gibbs sampler to sample each variable in turn. Based on the previous conditional distributions, we updated the four parameters including $B$, $\sigma^2$, $\sum$, and $\mu$ in sequence. Finally, we selected 10,000 iterations. Note that we ignored the first 8,000 iterations to ensure the stationary distribution of the Markov chain was reached.
 
-## Lasso and Poisson Regression Model
+## Regression Models
+
+To explore seasonal and annual difference in the wind speed, we took the $\beta$ coefficients from the Bayesian model as the response and built the following linear regression model:
+$$\beta_{j} \sim Season + Year + Nature, j = 0,..., 4,$$ where `season` and `nature` are categorical, and `year` is continuous variable. 
+
+To predict the hurricane-induced damage, we incorporated the coefficients from the Bayesian model and the new predictors in the second data, selected some featured variables by lasso, and finally fit a regression model. The variables $\beta_{0}$, Year, max speed, total affected population, and the affected population reside in the United States were selected in the model. $$Damage \sim \beta_{0} + Year + Maxspeed + Total.Pop + Percent.USA$$
+
+We built a poisson regression model to evaluate characteristics related to deaths.
+$$Death \sim \beta_{4} + MonthSummer + Maxspeed + Maxpressure + Meanpressure + Hours + Total.Pop + Percent.Poor$$
 
 
 # Results
@@ -127,7 +136,7 @@ Since directly generating the above jointly density is rather complicated, we ca
 
 
 # Reference
-
+[1] https://www.whoi.edu/know-your-ocean/ocean-topics/ocean-human-lives/natural-disasters/hurricanes/?gclid=Cj0KCQjwsdiTBhD5ARIsAIpW8CIO0bvwlo16Pisxe_WV7owA4KdbMfpAhMxqa-z8Ir3fsQyfiHPa2MAaAlmZEALw_wcB  
 
 # Appendix
 For codes please click [$\textcolor{blue}{here}$](https://github.com/hw2849/p8160_group_project_3.git)
