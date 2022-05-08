@@ -245,7 +245,6 @@ for (i in 1:691) {
 write.csv(beta_coef_final, "res_1_3rd_edition.csv")
 ```
 
-
 ### Test
 ```{r}
 ini.mu = c(50,rep(0,4))
@@ -292,62 +291,6 @@ pred_test_1 =  as.matrix(Xlist1[[1]]) %*% as.matrix(all_coef)
 RMSE(pred_test_1, as.matrix(Ylist1[[1]]))
 ```
 
-## Test prediction for each hurricane
-```{r}
-## Initial value
-ini.mu = c(50,rep(0,4))
-ini.sig = .5
-ini.bsig = diag(.5,5,5)
-
-## Prediction for each hurricane
-set.seed(666)
-res = NULL
-ids = unique(hurrican$id)
-  for (i in 1:length(ids)){
-    hurr_i <- hurrican %>% filter(id == ids[i])
-    #trRow <- createDataPartition(1:12, p = 0.8, list = F)
-    ## Train
-    #hurr_train = hurr_i[trRow,]
-    ## Test
-    #hurr_test = hurr_i[-trRow,]
-    
-    ## separate data
-    fold_index = cut(seq(1,nrow(hurr_i)),breaks = 5, labels = FALSE)
-    hurr_train = hurr_i[fold_index != 1, ]
-    hurr_test = hurr_i[fold_index == 1, ]
-    
-    ## List for beta
-    Xlist_train = hurr_train %>% 
-            dplyr::select(2:6, id) %>% 
-            nest() %>% 
-            pull(data)
-    Ylist_train = hurr_train %>% 
-      dplyr::select(1, id) %>% 
-      nest() %>% 
-      pull(data)
-    
-    ##MCMC
-    rest_test = mcmc(x = Xlist_train, y = Ylist_train, ini.mu, ini.bsig, ini.sig, niter = 5000)
-    beta_coef = colMeans(t(matrix(unlist(rest_test$B), 5, 5000))[3500:5000, ])
-    mu_coef = colMeans(t(matrix(unlist(rest_test$mu_est), 5, 5000))[3500:5000, ])
-    final_coef = beta_coef %>% as.double()
-    pred_test =  as.matrix(hurr_test[2:6]) %*% as.matrix(beta_coef)
-    
-    ## lm coefficients
-    lm_fit = lm(wind_kt_2 ~ wind_kt + latitude_d + longitude_d + wind_kt_d, data = hurr_train)
-    lm_fit_coef = lm_fit$coefficients
-    
-    ## RMSE
-    RMSE_value = RMSE(pred_test, hurr_test$wind_kt_2, na.rm = T)
-    
-    ## Result for each hurricane, RMSE test value and final coefficients
-    res = rbind(res, c(i, RMSE_value, final_coef, lm_fit_coef, mu_coef))
-  }
-
-res
-
-```
-
 ```{r}
 dat = data.frame(res)
 
@@ -361,31 +304,5 @@ qqplot(dat$V4, dat$wind_kt, xlab = "mcmc", ylab = "lm", main = "Q-Q Plot")
 colMeans(t(matrix(unlist(rest_test$mu_est), 5, 5000))[4000:5000, ])
 ```
 
-```{r}
-dat_1 <- read_csv("./res_1_140.csv")
-dat_2 <- read_csv("./res141_280.csv")
-dat_3 <- read_csv("./res281-420.csv")
-dat_4 <- read_csv("./res_id_421_560.csv")
-dat_5 <- read_csv("./res560-691.csv")
-
-dat_1 <- dat_1[, c(4:8)]
-colnames(dat_1) <- c("beta_0", "beta_1", "beta_2", "beta_3", "beta_4")
-
-dat_2 <- dat_2[, c(2:6)]
-colnames(dat_2) <- c("beta_0", "beta_1", "beta_2", "beta_3", "beta_4")
-
-dat_3 <- dat_3[, c(4:8)]
-colnames(dat_3) <- c("beta_0", "beta_1", "beta_2", "beta_3", "beta_4")
-
-dat_4 <- dat_4[, c(3:7)]
-colnames(dat_4) <- c("beta_0", "beta_1", "beta_2", "beta_3", "beta_4")
-
-dat_5 <- dat_5[-1, c(4:8)]
-colnames(dat_5) <- c("beta_0", "beta_1", "beta_2", "beta_3", "beta_4")
-
-res_1 = rbind(dat_1, dat_2, dat_3, dat_4, dat_5)
-
-write.csv(res_1, "res_1.csv")
-```
 
 

@@ -50,9 +50,9 @@ q6_df = read_csv("hurricanoutcome2.csv") %>%
   mutate(HurricanID = toupper(HurricanID))
 
 name_1 = unique(hurrican$id)
-res_1 <- read_csv("./res_1.csv") %>% 
+res_1 <- read_csv("res_1_3rd_edition.csv") %>% 
   mutate(id = name_1) %>% 
-  dplyr::select(c(-1,-2))
+  dplyr::select(c(2:7,18))
 colnames(res_1) = c("rmse", "beta_0", "beta_1", "beta_2", "beta_3", "beta_4", "HurricanID")
   
 
@@ -77,7 +77,7 @@ set.seed(100)
 lasso_dam_fit <- train(x = x_dam, y = y_dam,
                        method = "glmnet",
                        tuneGrid = expand.grid(alpha = 1,
-                                              lambda = exp(seq(10, 0, length = 100))),
+                                              lambda = exp(seq(3,-0.5, length = 50))),
                        trControl = trainControl(method = "LOOCV"))
 
 ggplot(lasso_dam_fit, highlight = T)
@@ -88,7 +88,8 @@ q6_df_dam = q6_df %>%
   relocate(4) %>%
   dplyr::select(-5)
 
-dam_fit = lm(Damage ~ Year + Maxspeed + Total.Pop + Percent.USA, data = q6_df_dam)
+## Re-fit the lm model
+dam_fit = lm(Damage ~ Year + beta_0 + Maxspeed + Total.Pop + Percent.USA, data = q6_df_dam)
 summary(dam_fit)
 ```
 
@@ -107,13 +108,15 @@ lasso_death_fit <- train(x = x_death, y = y_death,
                        method = "glmnet",
                        family = "poisson",
                        tuneGrid = expand.grid(alpha = 1,
-                                              lambda = exp(seq(-10, -20, length = 100))),
+                                              lambda = exp(seq(5, -2, length = 100))),
                        trControl = trainControl(method = "LOOCV"))
 
 ggplot(lasso_death_fit, highlight = T)
 lasso_death_fit$bestTune
 coef(lasso_death_fit$finalModel, lasso_death_fit$bestTune$lambda)
 
+## The lambda in lasso is infinitely large(should not shrink any predictor)
+### Directly fit a glm poisson model
 poi_fit = glm(Deaths ~ ., family = poisson(link=log), data = q6_df_2)
 summary(poi_fit)
 ```

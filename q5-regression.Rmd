@@ -33,9 +33,9 @@ hurrican <- read_csv("./hurrican703.csv") %>%
                      "BRET.2005", "FERNAND.2013", "FIFTEEN:UNNAMED.1988", "KYLE.1996")))
 
 name_1 = unique(hurrican$id)
-res_1 <- read_csv("./res_1.csv") %>% 
+res_1 <- read_csv("res_1_3rd_edition.csv") %>% 
   mutate(id = name_1) %>% 
-  dplyr::select(c(-1,-2))
+  dplyr::select(c(2:7,18))
 colnames(res_1) = c("rmse", "beta_0", "beta_1", "beta_2", "beta_3", "beta_4", "id")
   
 combine_res = left_join(res_1, hurrican, by = "id") %>% 
