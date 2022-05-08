@@ -20,14 +20,18 @@ In this project, we firstly built a Bayesian model based on the track data of 70
 
 # Data Descriptions and Preprocessing
 
-The first dataset hurrican703.csv collected the track data of 703 hurricanes in the North Atlantic area since 1950. For all the hurricanes, their locations (longitude \& latitude) and maximum wind speed were recorded every 6 hours. The variables include ID, Season, starting Month, Nature, time, Latitude, Longitude, Wind.kt. We created three new variables: changes of latitude and longitude, as well as the wind speed between the time t and $(t-6)$. For splitting the train and test set, we removed the hurricanes with observations less than 5. We built a regression model predicting wind speed based on this dataset. 
+The first data `hurrican703.csv` collected the track data of 703 hurricanes in the North Atlantic area since 1950. For all the hurricanes, their locations (longitude \& latitude) and maximum wind speed were recorded every 6 hours. The variables include `ID`, `Season`, `Month`, `Nature`, `time`, `Latitude`, `Longitude`, and `Wind.kt`.  
 
-The second dataset hurricanoutcome2.csv recorded the damages and death caused by 46 hurricanes in the U.S, and some features extracted from the hurricane records. To explore the characteristics related with death and damage, we combined the coefficients results from the first model with the second dataset by hurricane ID. 
+Main data processing steps for this data are listed as follows:  
+1) Created 3 new variables including the changes of latitude and longitude, as well as the wind speed between the time t and $(t-6)$;  
+2) Removed 9 hurricanes with observations less than 5 to ensure the data partition.  
+Finally, we have totally **691** hurricanes in the updated dataset.
+
+The second data `hurricanoutcome2.csv` recorded the damages and death caused by 46 hurricanes in the U.S, and some features extracted from the hurricane records. To explore the characteristics related with death and damage, we combined this data with the coefficients results obtained from the first model by the hurricane ID. For this dataset, we converted the start month into `season` including Spring, Summer, Fall, and Winter
 
 
 # Statistical Methods
-## Posterior Distribution and Conditional Distributions 
-### Likelihood
+## Likelihood
 
 For each hurricane $i$ and $k_{i}$'s time points, we have the following Bayesian model: $$Y_{i}(t+6)=\beta_{0i}+\beta_{1i} Y_{i}(t)+\beta_{2i} \Delta_{i1}(t)+\beta_{3i} \Delta_{i2}(t)+\beta_{4 i} \Delta_{i 3}(t)+\varepsilon_{i}(t),$$ where $Y_{i}(t)$ is the wind speed at time $t$, $\Delta_{i1}$, $\Delta_{i2}$, and $\Delta_{i3}$ are the changes of latitude, longitude, and the wind speed between time point $t$ and $t - 6$, respectively. $\varepsilon_{i}(t)$ follows a normal distributions with mean zero and variance $\sigma^2$. The above Bayesian model can be simplified as: $$Y_{i}(t+6) = x_{i}(t) + \varepsilon_{i}(t),$$ where $\beta_{i} = (\beta_{0i}, \beta_{1i}, ...,\beta_{4i}) \sim N\left(0, \sigma^2\right).$ Based on the property of the multivariate linear regression model, for each hurricane $i$, we have: $$Y_{i}\mid X_{i} \sim N_{k_{i}}\left(x_{i} \beta_{i}, \sigma^{2} I_{k_{i}}\right),$$ where $I_{k_{i}}$ is an identity matrix with $k_{i}$ dimensions.
 
@@ -40,13 +44,13 @@ f\left(y \mid B, \sigma^{2}\right)&=\prod_{i=1}^{n} f\left(y_{i} \mid \beta_{i},
 &=\prod_{i=1}^{n}\left(\left[(2 \pi)^{k_{i}} \cdot \operatorname{det}\left(\sigma^{2} I_{k i}\right)\right]^{-\frac{1}{2}} \cdot \exp \left\{-\frac{1}{2}\left(y_{i}-x_{i} \beta_{i}\right)^{\top} \left(\sigma^{2} I_{k_{i}}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right\}\right)\end{aligned}
 $$
 
-### Prior distributions
+## Prior distributions
 
 We assume the following non-informative prior distributions:
 $$\beta_{i}=\left(\beta_{0 i}, \beta_{1 i}, \ldots, \beta_{4 i}\right) \sim N_{5}(\mu, \Sigma),$$ where $B=\left(\beta_{1}^{\top}, \beta_{2}^{\top}, \ldots, \beta_{n}^{\top}\right)^{\top}$ and $n$ is the number of hurricanes. So,
 $$\pi(B | \mu, \Sigma^{-1})=\prod_{i=1}^{n} f\left(\beta_{i}\right) \propto \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \sum_{i}\left[\left(\beta_{i}-\mu\right)^{\top} (\Sigma)^{-1} \left(\beta_{i}-\mu\right)\right]\right\}.$$ Also, $\pi\left(\sigma^{2}\right) \propto \frac{1}{\sigma^{2}}; \hspace{.2cm} \pi(\mu) \propto 1; \hspace{.2cm} \pi\left(\Sigma^{-1}\right) \propto|\Sigma|^{-(d+1)} \cdot \exp \left(-\frac{1}{2} \Sigma^{-1}\right).$
 
-### Conditional posteriors
+## Conditional posteriors
 
 The posterior distribution is the product of the likelihood and the prior: 
 
