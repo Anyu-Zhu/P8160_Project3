@@ -1,5 +1,7 @@
 ---
-title: "Statistical Method"
+title: "P8160 Group Project 3: Bayesian Modeling of Hurricane Trajectories"
+author: "Anyu Zhu | Haotian Wu | Wenhan Bao | Yiming Li | Qihang Wu"
+date: "5/6/2022"
 output: pdf_document
 ---
 
@@ -7,7 +9,10 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Likelihood
+# Statistical Methods
+
+## Posterior Distribution and Conditional Distributions 
+### Likelihood
 
 For each hurricane $i$ and $k_{i}$'s time points, we have the following Bayesian model: $$Y_{i}(t+6)=\beta_{0i}+\beta_{1i} Y_{i}(t)+\beta_{2i} \Delta_{i1}(t)+\beta_{3i} \Delta_{i2}(t)+\beta_{4 i} \Delta_{i 3}(t)+\varepsilon_{i}(t),$$ where $Y_{i}(t)$ is the wind speed at time $t$, $\Delta_{i1}$, $\Delta_{i2}$, and $\Delta_{i3}$ are the changes of latitude, longitude, and the wind speed between time point $t$ and $t - 6$, respectively. $\varepsilon_{i}(t)$ follows a normal distributions with mean zero and variance $\sigma^2$. The above Bayesian model can be simplified as: $$Y_{i}(t+6) = x_{i}(t) + \varepsilon_{i}(t),$$ where $\beta_{i} = (\beta_{0i}, \beta_{1i}, ...,\beta_{4i}) \sim N\left(0, \sigma^2\right).$ Based on the property of the multivariate linear regression model, for each hurricane $i$, we have: $$Y_{i}\mid X_{i} \sim N_{k_{i}}\left(x_{i} \beta_{i}, \sigma^{2} I_{k_{i}}\right),$$ where $I_{k_{i}}$ is an identity matrix with $k_{i}$ dimensions.
 
@@ -20,13 +25,13 @@ f\left(y \mid B, \sigma^{2}\right)&=\prod_{i=1}^{n} f\left(y_{i} \mid \beta_{i},
 &=\prod_{i=1}^{n}\left(\left[(2 \pi)^{k_{i}} \cdot \operatorname{det}\left(\sigma^{2} I_{k i}\right)\right]^{-\frac{1}{2}} \cdot \exp \left\{-\frac{1}{2}\left(y_{i}-x_{i} \beta_{i}\right)^{\top} \left(\sigma^{2} I_{k_{i}}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right\}\right)\end{aligned}
 $$
 
-## Prior distributions
+### Prior distributions
 
 We assume the following non-informative prior distributions:
 $$\beta_{i}=\left(\beta_{0 i}, \beta_{1 i}, \ldots, \beta_{4 i}\right) \sim N_{5}(\mu, \Sigma),$$ where $B=\left(\beta_{1}^{\top}, \beta_{2}^{\top}, \ldots, \beta_{n}^{\top}\right)^{\top}$ and $n$ is the number of hurricanes. So,
 $$\pi(B | \mu, \Sigma^{-1})=\prod_{i=1}^{n} f\left(\beta_{i}\right) \propto \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \sum_{i}\left[\left(\beta_{i}-\mu\right)^{\top} (\Sigma)^{-1} \left(\beta_{i}-\mu\right)\right]\right\}.$$ Also, $\pi\left(\sigma^{2}\right) \propto \frac{1}{\sigma^{2}}; \hspace{.2cm} \pi(\mu) \propto 1; \hspace{.2cm} \pi\left(\Sigma^{-1}\right) \propto|\Sigma|^{-(d+1)} \cdot \exp \left(-\frac{1}{2} \Sigma^{-1}\right).$
 
-## Conditional posteriors
+### Conditional posteriors
 
 The posterior distribution is the product of the likelihood and the prior: 
 
@@ -80,4 +85,3 @@ $$M=\sigma^{-2} x_{i}^{\top} y_{i}+\Sigma^{-1} \mu$$
 
 Thus, 
 $\pi (B \mid \cdot) \propto \left(\beta_{i} -V^{-1} M\right)^{\top} V\left(\beta_{i}-V^{-1} M\right) \sim MVN\left(V^{-1} M, {V}^{-1}\right)$
-
