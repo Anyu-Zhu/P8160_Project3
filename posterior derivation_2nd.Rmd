@@ -65,8 +65,8 @@ Therefore, $\mu \sim MVN\left(M^{-1} N, {M}^{-1}\right)$.
 
 $$
 \begin{aligned}
-&\pi(B \mid \cdot) \propto \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(\beta_{i}-\mu\right)^{\top} \cdot(\Sigma)^{-1} \cdot\left(\beta_{i}-\mu\right)\right]\right\} \\
-&=\exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)+\left(\beta_{i}-\mu\right)^{\top} \cdot \Sigma^{-1}\left(\beta_{i}-\mu\right)\right]\right\} \\
+&\pi(B \mid \cdot) \propto \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(\beta_{i}-\mu\right)^{\top} (\Sigma)^{-1} \left(\beta_{i}-\mu\right)\right]\right\} \\
+&=\exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)+\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right]\right\} \\
 &=\exp \left\{ -\frac{1}{2} \Sigma_{i}[ y_{i}^{\top} \sigma^{-2} I_{k i} y_{i}+\beta_{i}^{\top} x_{i}^{\top} \sigma^{-2} I_{k_{i}} x_{i} \beta_{i}-2 y_{i}^{\top} \sigma^{-2} I_{k i} x_{i} \beta_{i}+\beta_{i}^{\top} \Sigma^{-1} \beta_{i}+\mu^{\top} \Sigma^{-1} \mu-2 \mu^{\top} \Sigma^{-1} \beta_{i}] \right\} \\
 &=\exp \left\{-\frac{1}{2} \Sigma_{i}[y_{i}^{\top} \sigma^{-2} I_{k i} y_{i}+\mu^{\top} {\Sigma}^{-1} \mu+\beta_{i}^{\top}\left({\Sigma}^{-1}+x_{i}^{\top} {\sigma}^{-2} I_{k i} x_{i}\right) \beta_{i}-2\left(y_{i}^{\top} \sigma^{-2} I_{k i} x_{i}+\mu^{\top} \Sigma^{-1}\right) \beta_{i}] \right\}
 \end{aligned}
