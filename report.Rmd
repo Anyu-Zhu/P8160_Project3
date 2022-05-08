@@ -113,7 +113,7 @@ Since directly generating the above jointly density is rather complicated, we ca
 ## Regression Models
 
 To explore seasonal and annual difference in the wind speed, we took the $\beta$ coefficients from the Bayesian model as the response and built the following linear regression model:
-$$\beta_{j} \sim Season + Year + Nature, j = 0,..., 4,$$ where `season` and `nature` are categorical, and `year` is continuous variable. 
+$$\beta_{j} \sim Season + Year + Nature, j = 0,..., 4,$$ where season and nature are categorical, and year is continuous variable. 
 
 To predict the hurricane-induced damage, we incorporated the coefficients from the Bayesian model and the new predictors in the second data, selected some featured variables by lasso, and finally fit a regression model. The variables $\beta_{0}$, Year, max speed, total affected population, and the affected population reside in the United States were selected in the model. $$Damage \sim \beta_{0} + Year + Maxspeed + Total.Pop + Percent.USA$$
 
