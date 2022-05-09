@@ -52,7 +52,7 @@ map +
   stat_summary_2d(data = dat, aes(x = Longitude, y = Latitude, z = dat$Wind.kt), 
                   fun = median, binwidth = c(1, 1), show.legend = TRUE, alpha = .85) + 
   guides(fill = guide_legend(title = "Maximum Wind Speed (in knot)")) +
-  ggtitle(paste0("Atlantic Windstorm mean wind speed"))
+  ggtitle(paste0("Atlantic Windstorm median wind speed"))
 ```
 
 
