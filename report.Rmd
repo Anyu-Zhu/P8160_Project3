@@ -192,9 +192,17 @@ For the case of `ABLE.1950`, the RMSE for the remaining 20% test dataset is 4.25
  knitr::kable(df, caption = "Compare the Coefficients from Gibbs Sampling and lm function")
 ```
 
-## Task 5
+## Seasonal and Annual Difference
 
-## Task 6
+There are three significant variables in the regression model for $\beta_{1}$, which represent current wind speed. Season spring and summer, year all have negative coefficients, indicating wind speed tend to decrease in spring and summer. There is no evidence of increasing trend in $\beta_{1}$ with the increase in year. 
+There are no significant variables in the regression model for $\beta_{2}$ and $\beta_{3}$.
+Season spring is the only significant variable in the regression model for $\beta_{4}$, indicating seasonal difference in acceleration of wind speed. 
+
+
+## Hurricane-induced damage and deaths prediction
+
+After variable selection by lasso regression, the linear regression model for hurricane-induced damage has positive coefficients for Year, $\beta_{0}$, Maxspeed, Total.Pop, and Percent.USA, indicating positive correlation between these hurricane characteristics and damage. Among these, year is the only significant variable.
+The variables selected by lasso regression for hurricane-induced deaths include Summer, $\beta_{4}$, Maxspeed, Maxpressure, Hours, Total.Pop, and Percent Poor.  All the selected variables shows significance in the poisson regression model. $\beta_{4}$, hours, and Percent.Poor has positive correlation with deaths while the other variables have negative coefficients. 
 
 
 # Discussion and Limitations
