@@ -164,13 +164,17 @@ ini.bsig = diag(.5,5,5)
 hurr_test = NULL
 hurr_train = NULL
 ids = unique(hurrican$id)
+set.seed(100)
 for (i in 1:length(ids)) {
     hurr_i <- hurrican %>% filter(id == ids[i])
     
     ## separate data
     fold_index = cut(seq(1,nrow(hurr_i)),breaks = 5, labels = FALSE)
-    hurr_train_1 = hurr_i[fold_index != 1, ]
-    hurr_test_1 = hurr_i[fold_index == 1, ]
+    
+    ## Randomly select
+    random_select = sample(1:5, 1)
+    hurr_train_1 = hurr_i[fold_index != random_select, ]
+    hurr_test_1 = hurr_i[fold_index == random_select, ]
     
     ## Combine data
     hurr_train = rbind(hurr_train, hurr_train_1)
