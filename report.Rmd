@@ -242,9 +242,10 @@ $$
 After variable selection by lasso regression, the linear regression model for hurricane-induced damage has positive coefficients for Year, $\beta_{0}$, Maxspeed, Total.Pop, and Percent.USA, indicating positive correlation between these hurricane characteristics and damage. Among these, year is the only significant variable.
 
 $$
-\text{Table 4: Coefficients of regression model for Damage}\\
-\begin{array}{lrrrr} 
-& \text { Estimate } & \text { Std. Error} &{t value} & \operatorname{Pr}(>|t|) \\
+\begin{aligned}
+&\text{Table 4: Coefficients of regression model for Damage}\\
+&\begin{array}{lrrrr} 
+& \text { Estimate } & \text { Std. Error} &{\text{t value}} & \operatorname{Pr}(>|t|) \\
 \hline
 \text { (Intercept) } & 11.155 & 3.067 & 3.638 & 0.000833 \\
 \text { Year } & 7.918 & 3.229 & 2.452 & 0.019035 \\
@@ -254,14 +255,16 @@ $$
 \text { Percent. USA } & 5.913 & 3.205 & 1.845 & 0.073077 \\
 \hline
 \end{array}
+\end{aligned}
 $$
 
 The variables selected by lasso regression for hurricane-induced deaths include Summer, $\beta_{4}$, Maxspeed, Maxpressure, Hours, Total.Pop, and Percent Poor.  All the selected variables shows significance in the poisson regression model. $\beta_{4}$, hours, and Percent.Poor has positive correlation with deaths while the other variables have negative coefficients. 
 
 $$
-\text{Table 5: Coefficients of regression model for Deaths}\\
-\begin{array}{lrrrr} 
-& \text { Estimate } & \text { Std. Error } & \text { value } & \operatorname{Pr}(>|z|) \\
+\begin{aligned}
+&\text{Table 5: Coefficients of regression model for Deaths}\\
+&\begin{array}{lrrrr} 
+& \text { Estimate } & \text { Std. Error } & \text {z value } & \operatorname{Pr}(>|z|) \\
 \hline
 \text { (Intercept) } & 5.539 \mathrm{e}+01 & 2.775 \mathrm{e}+00 & 19.958 & <2 \mathrm{e}-16 \\
 \text { MonthSummer } & -1.097 \mathrm{e}+00 & 2.250 \mathrm{e}-02 & -48.747 & <2 \mathrm{e}-16 \\
@@ -273,6 +276,7 @@ $$
 \text { Percent.Poor } & 3.452 \mathrm{e}-02 & 1.514 \mathrm{e}-04 & 227.951 & <2 \mathrm{e}-16 \\
 \hline
 \end{array}
+\end{aligned}
 $$
 # Discussion and Limitations
 
