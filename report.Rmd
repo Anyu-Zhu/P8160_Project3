@@ -156,7 +156,7 @@ where the above $\beta_{0}$ and $\beta_{4}$ are the coefficients from the Bayesi
 
 # Results
 ## MCMC-Gibbs Sampling
-The initial values for $\mu$, $\sigma^{2}$ and $\Sigma^{-1}$ we set are (50,0,0,0,0), 0.5 and `diag(0.5, 0.5, 0.5)` respectively. In the case of Gibbs results, we set 10000 iterations and record the $\beta_{i,j}^n$ in each iteration with a linear model (from the least square method) to demonstrate how similar the coefficients are for each hurricane’s train data and $\mu^n$.
+The initial values for $\mu$, $\sigma^{2}$ and $\Sigma$ we set are (50,0,0,0,0), 0.5 and `diag(0.5, 5, 5)` respectively. In the case of Gibbs results, we set 10000 iterations and record the $\beta_{i,j}^n$ in each iteration with a linear model (from the least square method) to demonstrate how similar the coefficients are for each hurricane’s train data and $\mu^n$.
 
 To minimize the variance generated randomly by Gibbs sampling and avoid the non convergent situation at the beginning of the iteration, we only take the coefficients value from 8000 to 10000 times where we take the mean value for each coefficients $\beta_{i,j}$ as the final results. To evaluate how well the estimated Bayesian model tracks the individual hurricanes, we divided the observations within each hurricane ID by 8:2 randomly to create a training and testing set. Then we calculated RMSE for each different hurricane.
 
@@ -182,7 +182,7 @@ For the case of `ABLE.1950`, the RMSE for the remaining 20% test dataset is 4.25
 ```{r, echo = FALSE, message=FALSE, warning=FALSE}
  library(tidyverse)
  df = tibble(
-   model = c("Gibbs sampling", "Weibull"),
+   model = c("Gibbs sampling", "Linear(lm)"),
    Intercept = c(7.601, 8.833),
    Beta1 = c(0.919, 0.912),
    Beta2 = c(-0.788, -1.394),
@@ -274,6 +274,7 @@ $$
 \hline
 \end{array}
 $$
+
 # Discussion and Limitations
 
 
