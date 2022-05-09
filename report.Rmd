@@ -25,7 +25,7 @@ When a hurricane approaches land, tremendous damage can occur to the nearby citi
 
 # Data Description and Preprocessing
 
-The first data `hurrican703.csv` collected the track data of 703 hurricanes in the North Atlantic area from 1950 to 2013. For all the hurricanes, their locations (longitude \& latitude) and maximum wind speed were recorded every 6 hours (e.g. 0, 6, 12, etc. excluding the data points are not in the 6-hour interval, e.g. the time at 4 am.). The variables include `ID`, `Season`, `Month`, `Nature`, `time`, `Latitude`, `Longitude`, and `Wind.kt`. Main data processing steps for this data are listed as follows:  
+The first data `hurrican703.csv` collected the track data of 703 hurricanes in the North Atlantic area from 1950 to 2013. For all the hurricanes, their locations (longitude \& latitude) and maximum wind speed were recorded every 6 hours (e.g. 0, 6, 12, etc. Excluding the data points are not in the 6-hour interval, e.g. the time point at 4 am). The variables include `ID`, `Season`, `Month`, `Nature`, `time`, `Latitude`, `Longitude`, and `Wind.kt`. Main data processing steps for this data are listed as follows:  
 1) Created 3 new variables including the changes of latitude and longitude, as well as the wind speed between the time t and $t-6$;  
 2) Removed 9 hurricanes with observations less than 5 to ensure the data partition;  
 3) To explore the seasonal differences, we converted the start month for each hurricane into the variable `season`, which includes Spring, Summer, Fall, and Winter. Finally, we have totally **691** hurricanes in the updated dataset.
