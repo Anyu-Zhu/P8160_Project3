@@ -143,7 +143,12 @@ $$\beta_{j} \sim Season + Year + Nature, j = 0,..., 4,$$ where season and nature
 To predict the hurricane-induced damage, we incorporated the coefficients from the Bayesian model and the new predictors in the second data, selected some featured variables by lasso, and finally fit a regression model. The variables $\beta_{0}$, Year, max speed, total affected population, and the affected population reside in the United States were selected in the model. $$Damage \sim \beta_{0} + Year + Maxspeed + Total.Pop + Percent.USA$$
 
 We built a poisson regression model to evaluate characteristics related to deaths.
-$$Death \sim \beta_{4} + MonthSummer + Maxspeed + Maxpressure + Meanpressure + Hours + Total.Pop + Percent.Poor$$
+$$
+\begin{aligned}
+Death \sim \beta_{4} + MonthSummer + Maxspeed + Maxpressure \\
++ Meanpressure + Hours + Total.Pop + Percent.Poor
+\end{aligned}
+$$
 
 
 # Results
@@ -158,10 +163,12 @@ $$Death \sim \beta_{4} + MonthSummer + Maxspeed + Maxpressure + Meanpressure + H
 
 
 # Contributions
+We contributed to this project evenly.
 
 
 # Reference
 [1] https://www.whoi.edu/know-your-ocean/ocean-topics/ocean-human-lives/natural-disasters/hurricanes/?gclid=Cj0KCQjwsdiTBhD5ARIsAIpW8CIO0bvwlo16Pisxe_WV7owA4KdbMfpAhMxqa-z8Ir3fsQyfiHPa2MAaAlmZEALw_wcB  
+
 
 # Appendix
 For codes please click [$\textcolor{blue}{here}$](https://github.com/hw2849/p8160_group_project_3.git)
