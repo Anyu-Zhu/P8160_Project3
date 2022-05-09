@@ -1,0 +1,411 @@
+---
+title: "mcmc"
+output: html_document
+---
+
+```{r setup, message = FALSE}
+library(tidyverse)
+library(lubridate)
+library(extraDistr)
+library(rWishart)
+library(MASS)
+library(matrixsampling)
+library(caret)
+library(patchwork)
+```
+
+```{r}
+# --- Import data ---
+hurrican <- read_csv("./hurrican703.csv") %>% 
+  janitor::clean_names() %>% 
+  separate(time, into = c("date", "hour"), sep = " ") %>% 
+  filter(hour == "00:00:00)" | hour == "06:00:00)" | hour == "12:00:00)" | hour == "18:00:00)") %>% 
+  mutate(hour = str_replace(hour, ":00:00\\)", ""),
+         hour = as.numeric(hour),
+         date = str_replace(date, "\\(", ""),
+         date = yday(date)) %>% 
+  group_by(id) %>% 
+  mutate(latitude_d = lead(latitude) - latitude,
+         longitude_d = lead(longitude) - longitude,
+         wind_kt_d = wind_kt - lag(wind_kt),
+         wind_kt_2 = lead(wind_kt)) %>% 
+  na.omit() %>% 
+  mutate(intercept = 1) %>% 
+  relocate(13,14,9,10,11,12) %>%
+  ### Drop the hurricane data point( < 5) 
+  filter(!(id %in% c("TEN:UNNAMED.1988","EIGHT.2013", "TEN.2007", "JOSE.2005", "AMELIA.1978",
+                     "BRET.2005", "FERNAND.2013", "FIFTEEN:UNNAMED.1988", "KYLE.1996")))
+
+Xlist = hurrican %>% 
+  dplyr::select(2:6, id) %>% 
+  nest() %>% 
+  pull(data)
+
+Ylist = hurrican %>% 
+  dplyr::select(1, id) %>% 
+  nest() %>% 
+  pull(data)
+```
+
+```{r}
+# B for beta matrix
+B = function(x_dat, y_dat, mu_est, sigma_sq, sigma_inv){
+  res = NULL
+  n = length(x_dat)
+  # Beta_i function ~ N(V^-1*M, V^-1)
+  for (i in 1:n){
+    x = as.matrix(x_dat[[i]])
+    y = as.vector(y_dat[[i]])
+    k = sigma_inv + sigma_sq^(-1) * t(x) %*% x
+    m = sigma_sq^(-1) * (t(y) %*% x)  + t(mu_est) %*% sigma_inv
+    varcov = solve(k)
+    mu = varcov %*% t(m)
+    bi = mvrnorm(1, mu = mu, Sigma = varcov)
+    res = rbind(res, bi)
+  }
+  # Final res is the 700 x 5 matrix 
+  return(as.matrix(res))
+}
+```
+
+```{r}
+## sigma_sq
+sigma_sq <- function(B){
+  
+  n = length(10)
+  sum_ki = 0
+  res = NULL
+  ids = unique(hurrican$id)
+  for (i in 1:n){
+    hurr_i <- hurrican %>% filter(id == ids[i])
+    rowcount <- nrow(hurr_i)
+    sum_ki = sum_ki + rowcount
+  
+    y = hurr_i[,1]
+    x = hurr_i[, 2:6] %>% as.matrix()
+    z = as.matrix(B[i,])
+
+    ssr = sum((y - x %*% z)^2)
+    res = rbind(res, ssr)
+  }
+  
+  alpha = sum_ki/2
+  beta = res/2
+  sigma = rinvgamma(1, alpha, beta)
+  return(sigma)
+}
+
+```
+
+
+```{r}
+#big sigma inverse
+sigma_inv = function(B, mu_est){
+  n = nrow(B) # n is number of hurricane
+  d = ncol(B)
+  
+  scalematx = diag(0,d,d)
+  
+  for (i in 1:n) {
+    betai = as.matrix(B[i,])
+    scalematx = scalematx + (betai - (mu_est)) %*% t(betai - mu_est)
+  }
+  
+  omega = scalematx + diag(1,d,d) #omega is the scale matrix
+  sigmaws = rinvwishart(1, nu = n + 3 * d + 3, Omega = omega, checkSymmetry = F) 
+  sigmaws = matrix(sigmaws, nrow = d, ncol = d)
+  return(sigmaws)
+}
+
+```
+
+
+```{r}
+## Mu
+mu_est = function(B, sigma_inv){
+  col_mu = colMeans(B)
+  n = nrow(B)
+  mu = mvrnorm(1, col_mu, sigma_inv / n) 
+  return(mu)
+}
+```
+
+## MCMC
+```{r}
+mcmc = function(x_dat, y_dat, ini.mu, ini.bsig, ini.sig, niter){
+  beta.i = vector("list", length = niter) # in each iteration, betai - 365x8
+  b.sig = vector("list", length = niter)
+  sigma = rep(NA, niter)
+  mu = vector("list", length = niter)
+  
+  # Initial values:
+  beta.i[[1]] <- B(x_dat, y_dat, mu_est = ini.mu, sigma_sq = ini.sig, sigma_inv = ini.bsig)
+  sigma[1] <- ini.sig
+  mu[[1]] <- ini.mu
+  b.sig[[1]] <- ini.bsig
+
+  # Do gibbs sampler
+  for (i in 2:niter){
+    beta.i[[i]] = B(x_dat, y_dat, mu_est = mu[[i-1]], sigma_sq = sigma[i-1], sigma_inv = b.sig[[i-1]])
+    sigma[i] = sigma_sq(B = beta.i[[i]])
+    b.sig[[i]] = sigma_inv(B = beta.i[[i]], mu_est = mu[[i-1]])
+    mu[[i]] = mu_est(B = beta.i[[i]], sigma_inv = b.sig[[i]])
+  }
+  
+  return(list(B = beta.i, sigma_sq = sigma, sigma_inv = b.sig, mu_est = mu))
+}
+```
+
+```{r}
+ini.mu = c(50,rep(0,4))
+ini.sig = .5
+ini.bsig = diag(.5,5,5)
+
+## Data Partition 
+hurr_test = NULL
+hurr_train = NULL
+ids = unique(hurrican$id)
+for (i in 1:length(ids)) {
+    hurr_i <- hurrican %>% filter(id == ids[i])
+    
+    ## separate data
+    fold_index = cut(seq(1,nrow(hurr_i)),breaks = 5, labels = FALSE)
+    hurr_train_1 = hurr_i[fold_index != 1, ]
+    hurr_test_1 = hurr_i[fold_index == 1, ]
+    
+    ## Combine data
+    hurr_train = rbind(hurr_train, hurr_train_1)
+    hurr_test = rbind(hurr_test, hurr_test_1)
+}
+
+## Data into list for MCMC
+Xlist_train = hurr_train %>%
+  group_by(id) %>% 
+  dplyr::select(2:6, id) %>% 
+  nest() %>% 
+  pull(data)
+
+Ylist_train = hurr_train %>%
+  group_by(id) %>%
+  dplyr::select(1, id) %>% 
+  nest() %>% 
+  pull(data)
+
+Xlist_test = hurr_test %>%
+  group_by(id) %>% 
+  dplyr::select(2:6, id) %>% 
+  nest() %>% 
+  pull(data)
+
+Ylist_test = hurr_test %>%
+  group_by(id) %>%
+  dplyr::select(1, id) %>% 
+  nest() %>% 
+  pull(data)
+
+## MCMC to obtain coefficients beta
+set.seed(666)
+rest_final = mcmc(x = Xlist_train, y = Ylist_train, ini.mu, ini.bsig, ini.sig, niter = 10000)
+
+## final results for each hurricane and predictor
+beta_coef = NULL
+beta_coef_final = NULL
+
+for (i in 1:691) {
+  hurr_train_x = Xlist_train[[i]]
+  hurr_train_y = Ylist_train[[i]]
+  hurr_train = cbind(hurr_train_y, hurr_train_x)
+  hurr_test = Xlist_test[[i]]
+  
+  beta_coef_all = NULL
+  beta_coef_1 = NULL
+  mu_1 = NULL
+  ## Coefficients for each hurricane for MCMC
+  for (j in 8000:10000) {
+    beta_coef_all = rest_final$B[[j]][i,]
+    beta_coef_1 = rbind(beta_coef_1, beta_coef_all)
+    mu_all = rest_final$mu_est[[j]]
+    mu_1 = rbind(mu_1, mu_all)
+  }
+  
+  beta_coef = colMeans(beta_coef_1)
+  mu_coef = colMeans(mu_1)
+  pred_test = as.matrix(hurr_test) %*% as.matrix(beta_coef)
+  
+  ## Mu for each hurricane
+  
+  ## lm coefficients
+  lm_fit = lm(wind_kt_2 ~ wind_kt + latitude_d + longitude_d + wind_kt_d, data = hurr_train)
+  lm_fit_coef = lm_fit$coefficients
+  
+  ## RMSE
+  RMSE_value = RMSE(pred_test, Ylist_test[[i]]$wind_kt_2)
+  
+  beta_coef_final = rbind(beta_coef_final, c(RMSE_value, beta_coef, lm_fit_coef, mu_coef))
+}
+```
+
+```{r}
+## Take no.667 HELENE.2012 as example
+for (j in 1:10000) {
+    beta_coef_all = rest_final$B[[j]][1,]
+    beta_coef_1 = rbind(beta_coef_1, beta_coef_all)
+  }
+
+beta_coef_1 = as.data.frame(beta_coef_1)
+
+## ACF plot
+acf(beta_coef_1$beta1)
+acf(beta_coef_1$beta2)
+acf(beta_coef_1$beta3)
+acf(beta_coef_1$beta4)
+
+## TS plot
+ts.plot(beta_coef_1$beta1)
+ts.plot(beta_coef_1$beta2)
+ts.plot(beta_coef_1$beta3)
+ts.plot(beta_coef_1$beta4)
+
+## Coefficients change
+### Line plot
+colnames(beta_coef_1) = c("Intercept", "beta1", "beta2", "beta3", "beta4")
+plot_df = beta_coef_1 %>% 
+  mutate(index = 1:10000) %>% 
+  pivot_longer(cols = 1:5,
+               names_to = "Predictor",
+               values_to = "Coefficient")
+
+ggplot(plot_df, aes(x = index, y = Coefficient)) +
+  geom_line() +
+  theme_bw() + 
+  facet_grid(Predictor ~ ., scales = "free")
+
+a = ggplot(beta_coef_1, aes(x = Intercept)) +
+  geom_histogram(aes(y = ..density..), bins = 20) + 
+  theme_bw()
+
+b = ggplot(beta_coef_1, aes(x = beta1)) +
+  geom_histogram(aes(y = ..density..), bins = 20) + 
+  theme_bw()
+
+c = ggplot(beta_coef_1, aes(x = beta2)) +
+  geom_histogram(aes(y = ..density..), bins = 20) + 
+  theme_bw()
+
+d = ggplot(beta_coef_1, aes(x = beta3)) +
+  geom_histogram(aes(y = ..density..), bins = 20) + 
+  theme_bw()
+
+e = ggplot(beta_coef_1, aes(x = beta4)) +
+  geom_histogram(aes(y = ..density..), bins = 20) + 
+  theme_bw()
+
+a + b + c + d + e
+```
+
+
+```{r}
+## Mu
+  for (j in 1:10000) {
+    mu_all = rest_final$mu_est[[j]]
+    mu_1 = rbind(mu_1, mu_all)
+  }
+
+mu_1 = as.data.frame(mu_1)
+
+colnames(mu_1) = c("Intercept", "beta1", "beta2", "beta3", "beta4")
+plot_df_mu = mu_1 %>% 
+  mutate(index = 1:10000) %>% 
+  pivot_longer(cols = 1:5,
+               names_to = "Predictor",
+               values_to = "Mean_Value_Mu")
+
+ggplot(plot_df_mu, aes(x = index, y = Mean_Value_Mu)) +
+  geom_line() +
+  theme_bw() + 
+  facet_grid(Predictor ~ ., scales = "free")
+
+a_1 = ggplot(mu_1, aes(x = Intercept)) +
+  geom_histogram(aes(y = ..density..), bins = 20) + 
+  theme_bw()
+
+b_1 = ggplot(mu_1, aes(x = beta1)) +
+  geom_histogram(aes(y = ..density..), bins = 20) + 
+  theme_bw()
+
+c_1 = ggplot(mu_1, aes(x = beta2)) +
+  geom_histogram(aes(y = ..density..), bins = 20) + 
+  theme_bw()
+
+d_1 = ggplot(mu_1, aes(x = beta3)) +
+  geom_histogram(aes(y = ..density..), bins = 20) + 
+  theme_bw()
+
+e_1 = ggplot(mu_1, aes(x = beta4)) +
+  geom_histogram(aes(y = ..density..), bins = 20) + 
+  theme_bw()
+
+a_1 + b_1 + c_1 + d_1 + e_1
+```
+
+### Test
+```{r}
+ini.mu = c(50,rep(0,4))
+ini.sig = .5
+ini.bsig = diag(.5,5,5)
+
+Xlist1 = hurrican %>%
+  ungroup() %>% 
+  dplyr::select(2:6) %>% 
+  nest() %>% 
+  pull(data)
+
+Ylist1 = hurrican %>%
+  ungroup() %>% 
+  dplyr::select(1) %>% 
+  nest() %>% 
+  pull(data)
+
+rest_test_all = mcmc(x = Xlist, y = Ylist, ini.mu, ini.bsig, ini.sig, niter = 10)
+
+rest_test_all$B[[2]]
+
+all_coef = colMeans(t(matrix(unlist(rest_test_all$B), 5, 5000)))
+
+plot_beta_ch = NULL
+for (i in 100:5000) {
+  plot_beta_ch = rbind(plot_beta_ch, rest_test_all$B[i][[1]])
+}
+colnames(plot_beta_ch) = c("Intercept", "beta1", "beta2", "beta3", "beta4")
+
+plot_df = plot_beta_ch %>% 
+  as.data.frame() %>% 
+  mutate(index = 100:5000) %>% 
+  pivot_longer(cols = 1:5,
+               names_to = "Predictor",
+               values_to = "Coefficient")
+
+ggplot(plot_df, aes(x = index, y = Coefficient)) +
+  geom_line() +
+  theme_bw() + 
+  facet_grid(Predictor ~ ., scales = "free")
+
+pred_test_1 =  as.matrix(Xlist1[[1]]) %*% as.matrix(all_coef)
+RMSE(pred_test_1, as.matrix(Ylist1[[1]]))
+```
+
+```{r}
+dat = data.frame(res)
+
+dat = dat %>% 
+  dplyr::select(-1:-2) %>% 
+  drop_na()
+
+## qq plot to see whether lm and mcmc follow the same trend
+qqplot(dat$V4, dat$wind_kt, xlab = "mcmc", ylab = "lm", main = "Q-Q Plot")
+
+colMeans(t(matrix(unlist(rest_test$mu_est), 5, 5000))[4000:5000, ])
+```
+
+
+
