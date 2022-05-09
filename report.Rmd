@@ -50,7 +50,7 @@ map <- ggplot(data = dat, aes(x = Longitude, y = Latitude)) +
 
 map +
   stat_summary_2d(data = dat, aes(x = Longitude, y = Latitude, z = dat$Wind.kt), 
-                  fun = mean, binwidth = c(1, 1), show.legend = TRUE, alpha = .85) + 
+                  fun = median, binwidth = c(1, 1), show.legend = TRUE, alpha = .85) + 
   guides(fill = guide_legend(title = "Maximum Wind Speed (in knot)")) +
   ggtitle(paste0("Atlantic Windstorm mean wind speed"))
 ```
@@ -74,7 +74,7 @@ $$
 
 We assume the following non-informative prior distributions:
 $$\beta_{i}=\left(\beta_{0 i}, \beta_{1 i}, \ldots, \beta_{4 i}\right) \sim N_{5}(\mu, \Sigma),$$ where $B=\left(\beta_{1}^{\top}, \beta_{2}^{\top}, \ldots, \beta_{n}^{\top}\right)^{\top}$ and $n$ is the number of hurricanes. So,
-$$\pi(B | \mu, \Sigma^{-1})=\prod_{i=1}^{n} f\left(\beta_{i}\right) \propto \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \sum_{i}\left[\left(\beta_{i}-\mu\right)^{\top} (\Sigma)^{-1} \left(\beta_{i}-\mu\right)\right]\right\}.$$ Also, $\pi\left(\sigma^{2}\right) \propto \frac{1}{\sigma^{2}}; \hspace{.2cm} \pi(\mu) \propto 1; \hspace{.2cm} \pi\left(\Sigma^{-1}\right) \propto|\Sigma|^{-(d+1)} \cdot \exp \left(-\frac{1}{2} \Sigma^{-1}\right).$
+$$\pi(B | \mu, \Sigma)=\prod_{i=1}^{n} f\left(\beta_{i}\right) \propto \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \sum_{i}\left[\left(\beta_{i}-\mu\right)^{\top} (\Sigma)^{-1} \left(\beta_{i}-\mu\right)\right]\right\}.$$ Also, $\pi\left(\sigma^{2}\right) \propto \frac{1}{\sigma^{2}}; \hspace{.2cm} \pi(\mu) \propto 1; \hspace{.2cm} \pi\left(\Sigma^{-1}\right) \propto|\Sigma|^{-(d+1)} \cdot \exp \left(-\frac{1}{2} \Sigma^{-1}\right).$
 
 ## Conditional posteriors
 
@@ -82,6 +82,7 @@ The posterior distribution is the product of the likelihood and the prior:
 
 $$g\left(B, \sigma^{2}, \mu, \Sigma^{-1} \mid y\right) \propto f\left(y \mid B, \sigma^{2}\right) \cdot \pi(B \mid \mu, \Sigma^{-1}) \cdot \pi\left(\sigma^{2}\right) \cdot \pi(\mu) \cdot \pi\left(\Sigma^{-1}\right),$$ so we have:
 
+For $\sigma^2$, 
 $$
 \begin{aligned}
 \pi\left(\sigma^{2} \mid \cdot\right) & \propto \prod_{i=1}^{n} \operatorname{det}\left(\sigma^{2} I_{k_{i}}\right)^{-\frac{1}{2}} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \sigma^{-2} \\
@@ -91,6 +92,7 @@ $$
 $$
 Therefore, $\sigma^2 \sim \text{Inverse Gamma}\left(\frac{1}{2} \Sigma_{i} k_{i}, \frac{1}{2} \Sigma_{i} \Sigma_{t_{i}}\left(y_{i, t}-x_{i, t} \beta_{i}\right)^{2}\right)$.
 
+For $\Sigma$, 
 $$
 \begin{aligned} 
 \pi(\Sigma^{-1} \mid \cdot) & \propto \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right\} \cdot \operatorname{det}(\Sigma)^{-(d+1)} \cdot \exp \left\{-\frac{1}{2} \Sigma^{-1}\right\} \\ &=\operatorname{det}(\Sigma)^{-(n/2+d+1)} \cdot \exp \left\{-\frac{1}{2}\left[\Sigma^{-1}+\Sigma_{i}\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right]\right\} \\ 
@@ -100,7 +102,7 @@ $$
 $$
 Thus $\Sigma^{-1} \sim \text {Wishart}\left(n + 3d+3,[I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right]^{-1})$, that is: $$\Sigma \sim \text {Inverse Wishart}\left(n + 3d+3,I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right)$$
 
-
+For $\mu$,
 $$
 \begin{aligned}
 \pi(\mu \mid \cdot) & \propto \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right]\right\} \\
@@ -113,6 +115,7 @@ $$
 $$
 Therefore, $\mu \sim MVN\left(M^{-1} N, {M}^{-1}\right)$.
 
+And for $B$,
 $$
 \begin{aligned}
 &\pi(B \mid \cdot) \propto \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(\beta_{i}-\mu\right)^{\top} (\Sigma)^{-1} \left(\beta_{i}-\mu\right)\right]\right\} \\
@@ -133,23 +136,23 @@ $\pi (B \mid \cdot) \propto \left(\beta_{i} -V^{-1} M\right)^{\top} V\left(\beta
 
 
 ## Gibbs Sampling
-Since directly generating the above jointly density is rather complicated, we can implement the gibbs sampler to sample each variable in turn. Based on the previous conditional distributions, we updated the four parameters including $B$, $\sigma^2$, $\sum$, and $\mu$ in sequence. Finally, we selected 10,000 iterations. Note that we ignored the first 8,000 iterations to ensure the stationary distribution of the Markov chain was reached.
+Since directly generating the above parameters from the jointly density is rather complicated, we implement the gibbs sampler to sample each variable in turn. Based on the previous conditional distributions, we updated the four parameters including $B$, $\sigma^2$, $\Sigma$, and $\mu$ in sequence. Finally, we determined 10,000 iterations. Note that we ignored the first 8,000 iterations so that the stationary distribution of the Markov chain was reached.
 
 ## Regression Models
 
-To explore seasonal and annual difference in the wind speed, we took the $\beta$ coefficients from the Bayesian model as the response and built the following linear regression model:
-$$\beta_{j} \sim Season + Year + Nature, j = 0,..., 4,$$ where season and nature are categorical, and year is continuous variable. 
+To explore the seasonal and annual difference in the wind speed, we took the $\beta$ coefficients obtained from the Bayesian model as the response and built the following linear regression model:
+$$\beta_{j} \sim Season + Year + Nature, j = 0,..., 4,$$ where season and nature are categorical variables, and year is continuous. 
 
-To predict the hurricane-induced damage, we incorporated the coefficients from the Bayesian model and the new predictors in the second data, selected some featured variables by lasso, and finally fit a regression model. The variables $\beta_{0}$, Year, max speed, total affected population, and the affected population reside in the United States were selected in the model. $$Damage \sim \beta_{0} + Year + Maxspeed + Total.Pop + Percent.USA$$
+To further predict the hurricane-induced damage, we incorporated the coefficients from the Bayesian model and the new predictors in the second data, selected some features by lasso, and finally fit a regression model. The variables $\beta_{0}$, Year, max speed, total affected population, and the affected population reside in the United States were selected in the model. That is, $$Damage \sim \beta_{0} + Year + Maxspeed + Total.Pop + Percent.USA$$
 
-We built a poisson regression model to evaluate characteristics related to deaths.
+Then we also select some variables by lasso and built the following poisson regression model to evaluate the characteristics related to deaths.
 $$
 \begin{aligned}
 Death \sim \beta_{4} + MonthSummer + Maxspeed + Maxpressure \\
-+ Meanpressure + Hours + Total.Pop + Percent.Poor
++ Meanpressure + Hours + Total.Pop + Percent.Poor,
 \end{aligned}
 $$
-
+where the above $\beta_{0}$ and $\beta_{4}$ are the coefficients from the Bayesian model.
 
 # Results
 ## Gibbs Sampling
