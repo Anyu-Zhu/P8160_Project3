@@ -258,7 +258,7 @@ $$
 \end{aligned}
 $$
 
-The variables selected by lasso regression for hurricane-induced deaths include Summer, $\beta_{4}$, Maxspeed, Maxpressure, Hours, Total.Pop, and Percent Poor.  All the selected variables shows significance in the poisson regression model. $\beta_{4}$, hours, and Percent.Poor has positive correlation with deaths while the other variables have negative coefficients. 
+The variables selected by lasso regression for hurricane-induced deaths include Summer, $\beta_{4}$, Maxspeed, Maxpressure, Hours, Total.Pop, and Percent Poor.  All the selected variables are significant except for total population in the Poisson regression model. $\beta_{4}$, hours, and Percent.Poor has positive correlation with deaths while the other variables have negative coefficients. 
 
 $$
 \begin{aligned}
