@@ -136,7 +136,7 @@ $\pi (B \mid \cdot) \propto \left(\beta_{i} -V^{-1} M\right)^{\top} V\left(\beta
 
 
 ## Gibbs Sampling
-Since directly generating the above parameters from the jointly density is rather complicated, we implement the gibbs sampler to sample each variable in turn. Based on the previous conditional distributions, we updated the four parameters including $B$, $\sigma^2$, $\Sigma$, and $\mu$ in sequence. Finally, we determined 10,000 iterations. Note that we ignored the first 8,000 iterations so that the stationary distribution of the Markov chain was reached.
+Since directly generating the above parameters from the jointly density is rather complicated, we implement the gibbs sampler to sample each variable in turn. Based on the previous conditional distributions, we updated the four parameters including $B$, $\sigma^2$, $\Sigma$, and $\mu$ in sequence. Finally, we determined 10,000 iterations. Note that we ignored the first 8,000 iterations so that the stationary distribution of the Markov chain was reached. To evaluate how well the estimated Bayesian model tracks the individual hurricanes, we divided the observations within each hurricane ID by 8:2 randomly to create a training and testing set.
 
 ## Regression Models
 
@@ -149,7 +149,7 @@ Then we also select some variables by lasso and built the following Poisson regr
 $$
 \begin{aligned}
 log(Death) \sim \beta_{4} + MonthSummer + Maxspeed + Maxpressure \\
-+ Meanpressure + Hours + Total.Pop + Percent.Poor + offset(Hours),
++ Meanpressure + Total.Pop + Percent.Poor + offset(Hours),
 \end{aligned}
 $$
 where the above $\beta_{0}$ and $\beta_{4}$ are the coefficients from the Bayesian model.
