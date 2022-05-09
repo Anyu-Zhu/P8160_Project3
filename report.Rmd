@@ -267,7 +267,7 @@ $$
 & \text { Estimate } & \text { Std. Error } & \text {z value } & \operatorname{Pr}(>|z|) \\
 \hline
 \text { (Intercept) } & 6.654 \mathrm{e}+01 & 2.937 \mathrm{e}+00 & 22.652 & <2 \mathrm{e}-16 \\
-\text {beta 4} & 4.019 \mathrm{e}+00 & 7.226 \mathrm{e}-02 & 55.614 & <2 \mathrm{e}-16 \\
+\text { beta 4} & 4.019 \mathrm{e}+00 & 7.226 \mathrm{e}-02 & 55.614 & <2 \mathrm{e}-16 \\
 \text { MonthSummer } & -1.172 \mathrm{e}+00 & 2.275 \mathrm{e}-02 & -51.494 & <2 \mathrm{e}-16 \\
 \text { Maxspeed } & -5.448 \mathrm{e}-03 & 3.541 \mathrm{e}-04 & -15.386 & <2 \mathrm{e}-16 \\
 \text { Maxpressure } & -6.729 \mathrm{e}-02 & 2.891 \mathrm{e}-03 & -23.279 & <2 \mathrm{e}-16 \\
