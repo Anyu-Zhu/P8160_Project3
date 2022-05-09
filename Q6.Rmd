@@ -119,6 +119,6 @@ coef(lasso_death_fit$finalModel, lasso_death_fit$bestTune$lambda)
 
 ## The lambda in lasso is infinitely large(should not shrink any predictor)
 ### Directly fit a glm poisson model
-poi_fit = glm(Deaths ~ ., family = poisson(link=log), data = q6_df_2)
+poi_fit = glm(Deaths ~ beta_4 + Month + Maxspeed + Maxpressure + Meanpressure + Total.Pop + Percent.Poor + offset(log(Hours)), family = poisson(link=log), data = q6_df_2)
 summary(poi_fit)
 ```
