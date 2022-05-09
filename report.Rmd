@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 
 # Objective
 
-In this project, we firstly built a Bayesian model based on the track data of 703 hurricanes in the North Atlantic area since 1950. A Markov Chain Monte Carlo (MCMC) algorithm was designed to generate the distribution of corresponding parameters. With the start time and type of each hurricane, the estimated coefficients from the Bayesian model were used to explore the seasonal differences and wind speed changes over years. Finally, we explored the characteristics of hurricanes associated with the damage and deaths.
+In this project, we firstly built a Bayesian model based on the track data of 703 hurricanes in the North Atlantic area since 1950. A Markov Chain Monte Carlo (MCMC) algorithm was designed to generate the distribution of corresponding parameters. To evaluate characteristics of hurricanes, based on the start time and type of each hurricane, the estimated coefficients from the Bayesian model were used to explore the seasonal differences and wind speed changes over years. Finally, to predict the impact of hurricanes more precisely and get better prepared for the loss, we explored the characteristics of hurricanes associated with the damage and deaths.
 
 
 # Background
@@ -287,6 +287,8 @@ MCMC algorithm could return converged results whatever the initial values are, b
 There are some limitations for our project. For mcmc, when calculating the variance of beta coefficients, we apply the sum square of residuals based on current  beta values and corresponding x values, i.e. previous wind speed, latitude, longitude and previous wind speed variation. However, some specific hurricanes only have records no more than 10 and almost zero wind speed variation, which might cause anomalies in iteration. To be specific, zero predictor values force the product of coefficient and predictor to be zero and there is an extremely weak regularization on coefficients. For these types of hurricanes, mcmc might not work well and return large RMSE. RMSE also depended on how we split training and testing data in cross validation.
 
 We hope mcmc and ordinary linear regression have similar results, but the amount of some specific hurricanes is too small and some predictors values are highly correlated within such a limited time span. If more than two predictors of one hurricane are highly correlated, the determinant of the predictors matrix for this particular hurricane seems to be zero which indicates that coefficients are not unique. In this case, the lm function in R simply returns NA for constant predictors, so we could not make a comparison with mcmc predictors easily. 
+
+For future research, we may consider try negative binomial regression to model hurricane-induced deaths since negative binomial regression model can deal with over-dispersion better than poisson regression. To deal with limited number of observations within certain IDs, we may also consider using bootstrap to predict damage ans deaths.
 
 # Contributions
 We contributed to this project evenly.
