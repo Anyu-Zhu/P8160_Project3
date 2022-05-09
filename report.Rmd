@@ -143,9 +143,9 @@ Since directly generating the above parameters from the jointly density is rathe
 To explore the seasonal and annual difference in the wind speed, we took the $\beta$ coefficients obtained from the Bayesian model as the response and built the following linear regression model:
 $$\beta_{j} \sim Season + Year + Nature, j = 0,..., 4,$$ where season and nature are categorical variables, and year is continuous. 
 
-To further predict the hurricane-induced damage, we incorporated the coefficients from the Bayesian model and the new predictors in the second data, selected some features by lasso, and finally fit a regression model. The variables $\beta_{0}$, Year, max speed, total affected population, and the affected population reside in the United States were selected in the model. That is, $$Damage \sim \beta_{0} + Year + Maxspeed + Total.Pop + Percent.USA$$
+To further predict the hurricane-induced damage, we incorporated the coefficients from the Bayesian model and the new predictors in the second data, selected some features by lasso, and finally fit a regression model. Inside lasso regression, we applied 'leave-one-out' validation. We applied linear regression model for damage prediction. The variables $\beta_{0}$, Year, max speed, total affected population, and the affected population reside in the United States were selected in the model. That is, $$Damage \sim \beta_{0} + Year + Maxspeed + Total.Pop + Percent.USA$$
 
-Then we also select some variables by lasso and built the following poisson regression model to evaluate the characteristics related to deaths.
+Then we also select some variables by lasso and built the following Poisson regression model to evaluate the characteristics related to deaths since death is recored as count. 
 $$
 \begin{aligned}
 Death \sim \beta_{4} + MonthSummer + Maxspeed + Maxpressure \\
