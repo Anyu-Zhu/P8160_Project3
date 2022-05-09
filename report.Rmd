@@ -32,11 +32,11 @@ The first data `hurrican703.csv` collected the track data of 703 hurricanes in t
 2) Removed 9 hurricanes with observations less than 5 to ensure the data partition;  
 3) To explore the seasonal differences, we converted the start month for each hurricane into the variable `season`, which includes Spring, Summer, Fall, and Winter. Finally, we have totally **691** hurricanes in the updated dataset.
 
-The second data `hurricanoutcome2.csv` recorded the damages and death caused by 46 hurricanes in the United States, and some features extracted from the above hurricane records. To better explore the characteristics related with death and damage, we combined this data with the coefficients obtained from the first model by the hurricane ID. For this data, we also converted different start months into the corresponding seasons.
+The second data `hurricanoutcome2.csv` recorded the damages and death caused by 46 hurricanes in the United States, and some features extracted from the above hurricane records. To better explore the characteristics related with death and damage, we combined this data with the coefficients obtained from the first model by the hurricane ID. For this data, we also converted different start months into the corresponding seasons for consistency.
 
 ## Exploratory Data Analysis
 
-To generally understand the distribution of wind speed across the North Atlantic area, we created the following figure to show the mean maximum wind speed within each knot based on the longitude and latitude from the original data `hurrican703.csv`.
+To generally understand the distribution of wind speed across the North Atlantic area, we created the following figure to show the median maximum wind speed within each knot based on the longitude and latitude from the original data `hurrican703.csv`.
 
 ```{r echo = FALSE}
 library(tidyverse)
@@ -76,7 +76,7 @@ $$
 
 We assume the following non-informative prior distributions:
 $$\beta_{i}=\left(\beta_{0 i}, \beta_{1 i}, \ldots, \beta_{4 i}\right) \sim N_{5}(\mu, \Sigma),$$ where $B=\left(\beta_{1}^{\top}, \beta_{2}^{\top}, \ldots, \beta_{n}^{\top}\right)^{\top}$ and $n$ is the number of hurricanes. So,
-$$\pi(B | \mu, \Sigma)=\prod_{i=1}^{n} f\left(\beta_{i}\right) \propto \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \sum_{i}\left[\left(\beta_{i}-\mu\right)^{\top} (\Sigma)^{-1} \left(\beta_{i}-\mu\right)\right]\right\}.$$ Also, $\pi\left(\sigma^{2}\right) \propto \frac{1}{\sigma^{2}}; \hspace{.2cm} \pi(\mu) \propto 1; \hspace{.2cm} \pi\left(\Sigma^{-1}\right) \propto|\Sigma|^{-(d+1)} \cdot \exp \left(-\frac{1}{2} \Sigma^{-1}\right).$
+$$\pi(B | \mu, \Sigma)=\prod_{i=1}^{n} f\left(\beta_{i}\right) \propto \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \sum_{i}\left[\left(\beta_{i}-\mu\right)^{\top} (\Sigma)^{-1} \left(\beta_{i}-\mu\right)\right]\right\}.$$ Also, $\pi\left(\sigma^{2}\right) \propto \frac{1}{\sigma^{2}}; \hspace{.2cm} \pi(\mu) \propto 1; \hspace{.2cm} \pi\left(\Sigma^{-1}\right) \propto|\Sigma|^{-(d+1)} \cdot \exp \left(-\frac{1}{2} \operatorname{tr}(\Sigma^{-1})\right).$
 
 ## Conditional posteriors
 
@@ -97,9 +97,10 @@ Therefore, $\sigma^2 \sim \text{Inverse Gamma}\left(\frac{1}{2} \Sigma_{i} k_{i}
 For $\Sigma$, 
 $$
 \begin{aligned} 
-\pi(\Sigma^{-1} \mid \cdot) & \propto \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right\} \cdot \operatorname{det}(\Sigma)^{-(d+1)} \cdot \exp \left\{-\frac{1}{2} \Sigma^{-1}\right\} \\ &=\operatorname{det}(\Sigma)^{-(n/2+d+1)} \cdot \exp \left\{-\frac{1}{2}\left[\Sigma^{-1}+\Sigma_{i}\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right]\right\} \\ 
-& \propto \operatorname{det}(\Sigma^{-1})^{(n+2 d+2) / 2} \cdot \exp \left\{-\frac{1}{2} \operatorname{tr}\left[\Sigma^{-1}\cdot\left(I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right]\right\}\right.\\ 
-& \propto \operatorname{det}(\Sigma^{-1})^{(n+3d+3-d-1) / 2} \cdot \exp \left\{-\frac{1}{2} \operatorname{tr}\left[\Sigma^{-1} \cdot\left(I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right]\right\}\right.
+\pi(\Sigma^{-1} \mid \cdot) & \propto \operatorname{det}(\Sigma)^{-n / 2} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right\} \cdot \operatorname{det}(\Sigma)^{-(d+1)} \cdot \exp \left\{-\frac{1}{2} 
+\operatorname{tr}(\Sigma^{-1})\right\} \\ &\propto \operatorname{det}(\Sigma)^{-(n/2+d+1)} \cdot \exp \left\{-\frac{1}{2} \operatorname{tr}(\Sigma^{-1}) - \frac{1}{2}\Sigma_{i}\left(\beta_{i}-\mu\right)^{\top} \Sigma^{-1}\left(\beta_{i}-\mu\right)\right\} \\ 
+& \propto \operatorname{det}(\Sigma^{-1})^{(n+2 d+2) / 2} \cdot \exp \left\{-\frac{1}{2} \operatorname{tr}\left[\Sigma^{-1}\cdot\left(I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right)\right]\}\right.\\ 
+& \propto \operatorname{det}(\Sigma^{-1})^{(n+3d+3-d-1) / 2} \cdot \exp \left\{-\frac{1}{2} \operatorname{tr}\left[\Sigma^{-1} \cdot\left(I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right)\right]\}\right.
 \end{aligned}
 $$
 Thus $\Sigma^{-1} \sim \text {Wishart}\left(n + 3d+3,[I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right]^{-1})$, that is: $$\Sigma \sim \text {Inverse Wishart}\left(n + 3d+3,I+\Sigma_{i}\left(\beta_{i}-\mu\right)\left(\beta_{i}-\mu\right)^{\top}\right)$$
@@ -117,7 +118,7 @@ $$
 $$
 Therefore, $\mu \sim MVN\left(M^{-1} N, {M}^{-1}\right)$.
 
-And for $B$,
+For $B$,
 $$
 \begin{aligned}
 &\pi(B \mid \cdot) \propto \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(y_{i}-x_{i} \beta_{i}\right)^{\top}\left(\sigma^{2} I_{k i}\right)^{-1}\left(y_{i}-x_{i} \beta_{i}\right)\right]\right\} \cdot \exp \left\{-\frac{1}{2} \Sigma_{i}\left[\left(\beta_{i}-\mu\right)^{\top} (\Sigma)^{-1} \left(\beta_{i}-\mu\right)\right]\right\} \\
@@ -138,19 +139,19 @@ $\pi (B \mid \cdot) \propto \left(\beta_{i} -V^{-1} M\right)^{\top} V\left(\beta
 
 
 ## Gibbs Sampling
-Since directly generating the above parameters from the jointly density is rather complicated, we implement the gibbs sampler to sample each variable in turn. Based on the previous conditional distributions, we updated the four parameters including $B$, $\sigma^2$, $\Sigma$, and $\mu$ in sequence. Finally, we determined 10,000 iterations. Note that we ignored the first 8,000 iterations so that the stationary distribution of the Markov chain was reached. To evaluate how well the estimated Bayesian model tracks the individual hurricanes, we divided the observations within each hurricane ID by 8:2 randomly to create a training and testing set.
+Since directly generating the above parameters from the jointly density is rather complicated, we implement the gibbs sampler to sample each variable in turn. Based on the previous conditional distributions, we updated the four parameters including $B$, $\sigma^2$, $\Sigma$, and $\mu$ in sequence. Finally, we determined 10,000 iterations. Note that we ignored the first 8,000 iterations so that the stationary distribution of the Markov chain was reached. And to evaluate how well the estimated Bayesian model tracks the individual hurricanes, we divided the observations within each hurricane ID by 8:2 randomly to create a training set and a testing set.
 
 ## Regression Models
 
 To explore the seasonal and annual difference in the wind speed, we took the $\beta$ coefficients obtained from the Bayesian model as the response and built the following linear regression model:
 $$\beta_{j} \sim Season + Year + Nature, j = 0,..., 4,$$ where season and nature are categorical variables, and year is continuous. 
 
-To further predict the hurricane-induced damage, we incorporated the coefficients from the Bayesian model and the new predictors in the second data, selected some features by lasso, and finally fit a regression model. Inside lasso regression, we applied 'leave-one-out' validation. We applied linear regression model for damage prediction. The variables $\beta_{0}$, Year, max speed, total affected population, and the affected population reside in the United States were selected in the model. That is, $$Damage \sim \beta_{0} + Year + Maxspeed + Total.Pop + Percent.USA$$
+To further predict the hurricane-induced damage, we incorporated the coefficients from the Bayesian model and the new predictors in the second data, selected some features by lasso, and finally fit a regression model. Inside lasso regression, we applied 'leave-one-out' validation. In the linear regression model for damage prediction, the variables $\beta_{0}$, Year, max speed, total affected population, and the affected population reside in the United States were selected in the model. That is, $$Damage \sim \beta_{0} + Year + Maxspeed + Total.Pop + Percent.USA$$
 
 Then we also select some variables by lasso and built the following Poisson regression model to evaluate the characteristics related to deaths since death is recorded as count, and we offset the Hours variable. 
 $$
 \begin{aligned}
-log(Death) \sim \beta_{4} + MonthSummer + Maxspeed + Maxpressure \\
+log(E(Death)) \sim \beta_{4} + MonthSummer + Maxspeed + Maxpressure \\
 + Meanpressure + Total.Pop + Percent.Poor + offset(Hours),
 \end{aligned}
 $$
@@ -158,13 +159,13 @@ where the above $\beta_{0}$ and $\beta_{4}$ are the coefficients from the Bayesi
 
 # Results
 ## MCMC-Gibbs Sampling
-The initial values for $\mu$, $\sigma^{2}$ and $\Sigma$ we set are (50,0,0,0,0), 0.5 and `diag(0.5, 5, 5)` respectively. In the case of Gibbs results, we set 10000 iterations and record the $\beta_{i,j}^n$ in each iteration with a linear model (from the least square method) to demonstrate how similar the coefficients are for each hurricane’s train data and $\mu^n$.
+The initial values for $\mu$, $\sigma^{2}$ and $\Sigma$ are (50, 0, 0, 0, 0), 0.5, and `diag(0.5, 5, 5)`, respectively. In the case of Gibbs results, we set 10,000 iterations and record the $\beta_{i,j}^n$ in each iteration with a linear model (from the least square method) to demonstrate how similar the coefficients are for each hurricane’s train data and $\mu^n$.
 
-To minimize the variance generated randomly by Gibbs sampling and avoid the non convergent situation at the beginning of the iteration, we only take the coefficients value from 8000 to 10000 times where we take the mean value for each coefficients $\beta_{i,j}$ as the final results. To evaluate how well the estimated Bayesian model tracks the individual hurricanes, we divided the observations within each hurricane ID by 8:2 randomly to create a training and testing set. Then we calculated RMSE for each different hurricane by taking the value of test dataset for each hurricane and the coefficients $\hat{\beta_{i,j}}$ to predict the wind speed at $t+6$.
+To minimize the variance generated randomly by Gibbs sampling and avoid the non convergent situation at the beginning of the iteration, we only take the coefficients value from 8,000 to 10,000 times where we take the mean value for each coefficients $\beta_{i,j}$ as the final results. To evaluate how well the estimated Bayesian model tracks the individual hurricanes, we divided the observations within each hurricane ID by 8:2 randomly to create a training set and a testing set. Then we calculated the RMSE for each different hurricane by taking the value of test dataset for each hurricane and the coefficients $\hat{\beta_{i,j}}$ to predict the wind speed at $t+6$.
 
-For our final results obtained from Gibbs sampling, you could jump to our [$\textcolor{blue}{github}$](https://github.com/hw2849/p8160_group_project_3/blob/master/res_1_4th_edition.csv)(Column2: RMSE for the test dataset, Column3-7: Mean coefficients $\beta_{i,j}$ for each hurricane by Gibbs sampling, Column8-12: coefficients $\beta_{i,j}$ for each hurricane by lm() function, Column13-17: Mean $\mu$ for $B$) 
+For our final results obtained from Gibbs sampling, you could jump to our [$\textcolor{blue}{Github}$](https://github.com/hw2849/p8160_group_project_3/blob/master/res_1_4th_edition.csv) (Column 2: RMSE for the test dataset, Column 3-7: Mean coefficients $\beta_{i,j}$ for each hurricane by Gibbs sampling, Column 8-12: coefficients $\beta_{i,j}$ for each hurricane by lm() function, Column 13-17: Mean $\mu$ for $B$) 
 
-In order to further elucidate the results from our Gibbs methods, we take `ABLE.1950` as an example. Firstly, we trace the Gibbs step for only extracting the $\beta_{1,j}^n$ from $B^n$ by plotting the value. 
+In order to further elucidate the results from our Gibbs methods, we take `ABLE.1950` as a concrete example. To begin with, we traced the Gibbs step for only extracting the $\beta_{1,j}^n$ from $B^n$ by plotting the value. 
 
 <center>
 ![](Figure/figure_change.png){}
@@ -196,7 +197,7 @@ For the case of `ABLE.1950`, the RMSE for the remaining 20% test dataset is 4.25
 
 ## Seasonal and Annual Difference
 
-There are three significant variables in the regression model for $\beta_{1}$, which represent current wind speed. Season spring and summer, year all have negative coefficients, indicating wind speed tend to decrease in spring and summer. There is no evidence of increasing trend in $\beta_{1}$ with the increase in year. 
+There are three significant variables in the regression model for $\beta_{1}$, which represent current wind speed. Season spring and summer, year all have negative coefficients, indicating wind speed tend to decrease in spring and summer. Statistically, there is no enough evidence of increasing trend in the $\beta_{1}$ with the increase in year. 
 
 $$
 \begin{aligned}
@@ -217,8 +218,8 @@ $$
 \end{aligned}
 $$
 
-There are no significant variables in the regression model for $\beta_{2}$ and $\beta_{3}$.
-Season spring is the only significant variable in the regression model for $\beta_{4}$, indicating seasonal difference in acceleration of wind speed. 
+Since there are no significant variables in the regression model for both $\beta_{2}$ and $\beta_{3}$, the modeling results are not shown in this case.
+Season spring is the only significant variable in the regression model for $\beta_{4}$, which indicates the seasonal difference in the acceleration of wind speed. 
 
 $$
 \begin{aligned}
@@ -241,7 +242,7 @@ $$
 
 ## Hurricane-induced damage and deaths prediction
 
-After variable selection by lasso regression, the linear regression model for hurricane-induced damage has positive coefficients for Year, $\beta_{0}$, Maxspeed, Total.Pop, and Percent.USA, indicating positive correlation between these hurricane characteristics and damage. Among these, year is the only significant variable.
+After variable selection by lasso, the linear regression model for the hurricane-induced damage has positive coefficients for Year, $\beta_{0}$, Maxspeed, Total.Pop, and Percent.USA. It means that the positive correlations between these hurricane characteristics and the damage. Among these, the year of the hurricane is the only significant variable.
 
 $$
 \begin{aligned}
@@ -260,7 +261,7 @@ $$
 \end{aligned}
 $$
 
-The variables selected by lasso regression for hurricane-induced deaths include Summer, $\beta_{4}$, Maxspeed, Maxpressure, Hours, Total.Pop, and Percent Poor.  All the selected variables are significant except for total population in the Poisson regression model. $\beta_{4}$, hours, and Percent.Poor has positive correlation with deaths while the other variables have negative coefficients. 
+The variables selected by lasso regression for hurricane-induced deaths include Summer, $\beta_{4}$, Maxspeed, Hour, Maxpressure, Meanpressure, Total.Pop, and Percent Poor.  All the selected variables are significant except for total affected population in the Poisson regression model. $\beta_{4}$, Total.Pop, and Percent.Poor have positive correlations with the hurricane-induced deaths while the other variables have negative coefficients. Note that the results have been offset by the variable Hours to ensure a fair comparison.
 
 $$
 \begin{aligned}
@@ -282,21 +283,22 @@ $$
 $$
 
 # Discussion and Limitations
-MCMC algorithm could return converged results whatever the initial values are, but some initial values that allow for faster convergence. Since our likelihood are actually based on normal assumption, `lm` regression coefficients might be warm start. At the same time, MCMC returns consistent results with hypothesis. We supposed coefficients from 700 hurricanes follow multivariate normal distribution with common mean mu. In our results, mean of coefficients beta are very close to mu.
+The MCMC algorithm could return converged results whatever the initial values are, but some initial values that allow for faster convergence. Since our likelihood are actually based on normal assumption, `lm` regression coefficients might be warm start. At the same time, MCMC returns consistent results with hypothesis. We supposed coefficients from 700 hurricanes follow multivariate normal distribution with common mean mu. In our results, mean of coefficients beta are very close to mu.
 
 There are some limitations for our project. For mcmc, when calculating the variance of beta coefficients, we apply the sum square of residuals based on current  beta values and corresponding x values, i.e. previous wind speed, latitude, longitude and previous wind speed variation. However, some specific hurricanes only have records no more than 10 and almost zero wind speed variation, which might cause anomalies in iteration. To be specific, zero predictor values force the product of coefficient and predictor to be zero and there is an extremely weak regularization on coefficients. For these types of hurricanes, mcmc might not work well and return large RMSE. RMSE also depended on how we split training and testing data in cross validation.
 
 We hope mcmc and ordinary linear regression have similar results, but the amount of some specific hurricanes is too small and some predictors values are highly correlated within such a limited time span. If more than two predictors of one hurricane are highly correlated, the determinant of the predictors matrix for this particular hurricane seems to be zero which indicates that coefficients are not unique. In this case, the lm function in R simply returns NA for constant predictors, so we could not make a comparison with mcmc predictors easily. 
 
-For future research, we may consider try negative binomial regression to model hurricane-induced deaths since negative binomial regression model can deal with over-dispersion better than poisson regression. To deal with limited number of observations within certain IDs, we may also consider using bootstrap to predict damage ans deaths.
+For future research, we may consider the negative binomial regression to model hurricane-induced deaths since negative binomial regression model can deal with over-dispersion better than the poisson model. To deal with limited number of observations within certain hurricane IDs, we could also consider using bootstrap to predict the damage and deaths.
+
 
 # Contributions
 We contributed to this project evenly.
 
 
 # Reference
-[1] https://www.whoi.edu/know-your-ocean/ocean-topics/ocean-human-lives/natural-disasters/hurricanes/?gclid=Cj0KCQjwsdiTBhD5ARIsAIpW8CIO0bvwlo16Pisxe_WV7owA4KdbMfpAhMxqa-z8Ir3fsQyfiHPa2MAaAlmZEALw_wcB  
+[1] https://www.whoi.edu/know-your-ocean/ocean-topics/ocean-human-lives/natural-disasters/hurricanes/?gclid=Cj0KCQjwsdiTBhD5ARIsAIpW8CIO0bvwlo16Pisxe_WV7owA4KdbMfpAhMxqa-z8Ir3fsQyfiHPa2MAaAlmZEALw_wcB
 
 
 # Appendix
-For codes please click [$\textcolor{blue}{here}$](https://github.com/hw2849/p8160_group_project_3.git)
+For codes please click [$\textcolor{blue}{here}$](https://github.com/hw2849/p8160_group_project_3.git).
