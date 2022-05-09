@@ -145,11 +145,11 @@ $$\beta_{j} \sim Season + Year + Nature, j = 0,..., 4,$$ where season and nature
 
 To further predict the hurricane-induced damage, we incorporated the coefficients from the Bayesian model and the new predictors in the second data, selected some features by lasso, and finally fit a regression model. Inside lasso regression, we applied 'leave-one-out' validation. We applied linear regression model for damage prediction. The variables $\beta_{0}$, Year, max speed, total affected population, and the affected population reside in the United States were selected in the model. That is, $$Damage \sim \beta_{0} + Year + Maxspeed + Total.Pop + Percent.USA$$
 
-Then we also select some variables by lasso and built the following Poisson regression model to evaluate the characteristics related to deaths since death is recored as count. 
+Then we also select some variables by lasso and built the following Poisson regression model to evaluate the characteristics related to deaths since death is recorded as count, and we offset the Hours variable. 
 $$
 \begin{aligned}
-Death \sim \beta_{4} + MonthSummer + Maxspeed + Maxpressure \\
-+ Meanpressure + Hours + Total.Pop + Percent.Poor,
+log(Death) \sim \beta_{4} + MonthSummer + Maxspeed + Maxpressure \\
++ Meanpressure + Hours + Total.Pop + Percent.Poor + offset(Hours),
 \end{aligned}
 $$
 where the above $\beta_{0}$ and $\beta_{4}$ are the coefficients from the Bayesian model.
@@ -266,14 +266,14 @@ $$
 &\begin{array}{lrrrr} 
 & \text { Estimate } & \text { Std. Error } & \text {z value } & \operatorname{Pr}(>|z|) \\
 \hline
-\text { (Intercept) } & 5.539 \mathrm{e}+01 & 2.775 \mathrm{e}+00 & 19.958 & <2 \mathrm{e}-16 \\
-\text { MonthSummer } & -1.097 \mathrm{e}+00 & 2.250 \mathrm{e}-02 & -48.747 & <2 \mathrm{e}-16 \\
-\text { beta4} & 3.641 \mathrm{e}+00 & 6.543 \mathrm{e}-02 & 55.645 & <2 \mathrm{e}-16 \\
-\text { Maxspeed } & -8.392 \mathrm{e}-04 & 4.104 \mathrm{e}-04 & -2.045 & 0.0409 \\
-\text { Maxpressure } & -5.160 \mathrm{e}-02 & 2.738 \mathrm{e}-03 & -18.850 & <2 \mathrm{e}-16 \\
-\text { Hours } & 1.903 \mathrm{e}-03 & 9.169 \mathrm{e}-05 & 20.754 & <2 \mathrm{e}-16 \\
-\text { Total.Pop } & -8.973 \mathrm{e}-08 & 1.371 \mathrm{e}-08 & -6.547 & 5.87 \mathrm{e}-11 \\
-\text { Percent.Poor } & 3.452 \mathrm{e}-02 & 1.514 \mathrm{e}-04 & 227.951 & <2 \mathrm{e}-16 \\
+\text { (Intercept) } & 6.654 \mathrm{e}+01 & 2.937 \mathrm{e}+00 & 22.652 & <2 \mathrm{e}-16 \\
+\text {beta 4} & 4.019 \mathrm{e}+00 & 7.226 \mathrm{e}-02 & 55.614 & <2 \mathrm{e}-16 \\
+\text { MonthSummer } & -1.172 \mathrm{e}+00 & 2.275 \mathrm{e}-02 & -51.494 & <2 \mathrm{e}-16 \\
+\text { Maxspeed } & -5.448 \mathrm{e}-03 & 3.541 \mathrm{e}-04 & -15.386 & <2 \mathrm{e}-16 \\
+\text { Maxpressure } & -6.729 \mathrm{e}-02 & 2.891 \mathrm{e}-03 & -23.279 & <2 \mathrm{e}-16 \\
+\text { Meanpressure } & -1.522 \mathrm{e}-04 & 3.094 \mathrm{e}-05 & -4.920 & 8.67 \mathrm{e}-07 \\
+\text { Total.Pop } & 1.736 \mathrm{e}-08 & 1.246 \mathrm{e}-08 & 1.393 & 0.164 \\
+\text { Percent.Poor } & 3.463 \mathrm{e}-02 & 1.587 \mathrm{e}-04 & 218.230 & <2 \mathrm{e}-16 \\
 \hline
 \end{array}
 \end{aligned}
