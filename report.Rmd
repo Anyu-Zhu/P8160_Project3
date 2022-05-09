@@ -278,8 +278,13 @@ $$
 \end{array}
 \end{aligned}
 $$
-# Discussion and Limitations
 
+# Discussion and Limitations
+MCMC algorithm could return converged results whatever the initial values are, but some initial values that allow for faster convergence. Since our likelihood are actually based on normal assumption, `lm` regression coefficients might be warm start. At the same time, MCMC returns consistent results with hypothesis. We supposed coefficients from 700 hurricanes follow multivariate normal distribution with common mean mu. In our results, mean of coefficients beta are very close to mu.
+
+There are some limitations for our project. For mcmc, when calculating the variance of beta coefficients, we apply the sum square of residuals based on current  beta values and corresponding x values, i.e. previous wind speed, latitude, longitude and previous wind speed variation. However, some specific hurricanes only have records no more than 10 and almost zero wind speed variation, which might cause anomalies in iteration. To be specific, zero predictor values force the product of coefficient and predictor to be zero and this is an extremely strong regularization on coefficients. For these types of hurricanes, mcmc might not work well and return large RMSE, which also depended on how to split training and testing data in cross validation.
+
+We hope mcmc and ordinary linear regression have similar results, but the amount of some specific hurricanes is too small and some predictors values are highly correlated within such a limited time span. If more than two predictors of one hurricane are highly correlated, the determinant of the predictors matrix for this particular hurricane seems to be zero which indicates that coefficients are not unique. In this case, the lm function in R simply returns NA for constant predictors, so we could not make a comparison with mcmc predictors. 
 
 # Contributions
 We contributed to this project evenly.
